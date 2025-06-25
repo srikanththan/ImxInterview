@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Questionnaire</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="page-logo">
+        <img src="logo.png" alt="Logo" />
+        <h3>MetaNovaAi<h3>
+        <p>Redifining Tomorrow, Today</p>
+    </div>
+    <div class="chat-container">
+        <div class="chat-header">
+            <img src="logo.png" alt="Chat Logo" />
+            <h2>iAmX review bot</h2>
+        </div>
+        <div id="chat-window" class="chat-window"></div>
+        <form id="chat-form" autocomplete="off">
+            <input type="text" id="chat-input" placeholder="Type your message..." autofocus />
+            <button type="submit" title="Send">▶</button>
+        </form>
+        <input type="file" id="file-input" style="display:none" />
+        <button id="upload-btn" class="upload-btn" style="display:none;">📤 Upload File</button>
+        <button id="mic-btn" style="display:none;margin:10px auto 0 auto;">🎤 Record Voice</button>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+</html> 
