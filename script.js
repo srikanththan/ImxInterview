@@ -134,6 +134,20 @@ const localizedQuestions = {
         }
     ]
 };
+const localizedButtonText = {
+    english: {
+        record: '🎤 Record Voice',
+        stop: '⏹️ Stop Recording'
+    },
+    telugu: {
+        record: '🎤 వాయిస్ రికార్డ్ చేయండి',
+        stop: '⏹️ రికార్డింగ్ ఆపండి'
+    },
+    hindi: {
+        record: '🎤 आवाज रिकॉर्ड करें',
+        stop: '⏹️ रिकॉर्डिंग रोकें'
+    }
+};
 let currentQuestionIndex = 0;
 
 // Q9: Pay Structure Clarity
@@ -368,6 +382,7 @@ function askVoiceQuestion(index) {
 
     const language = userResponses.languagePreference || 'english';
     const questions = localizedQuestions[language];
+    const buttonText = localizedButtonText[language];
 
     if (index < questions.length) {
         const question = questions[index];
@@ -378,6 +393,7 @@ function askVoiceQuestion(index) {
             if (question.example) {
                 addMessage(question.example);
             }
+            micBtn.textContent = buttonText.record;
             micBtn.style.display = 'block';
         }, 800);
         state = 'waiting_for_voice_answer';
@@ -567,10 +583,13 @@ micBtn.addEventListener('click', async function(e) {
     e.preventDefault();
     chatInput.disabled = true; // Disable text input during recording
 
+    const language = userResponses.languagePreference || 'english';
+    const buttonText = localizedButtonText[language];
+
     if (micBtn.dataset.recording === 'true') {
         // Stop recording
         mediaRecorder.stop();
-        micBtn.textContent = '🎤 Record Voice';
+        micBtn.textContent = buttonText.record;
         micBtn.dataset.recording = '';
         micBtn.disabled = true;
     } else {
@@ -596,7 +615,7 @@ micBtn.addEventListener('click', async function(e) {
                 }
             };
             mediaRecorder.start();
-            micBtn.textContent = '⏹️ Stop Recording';
+            micBtn.textContent = buttonText.stop;
             micBtn.dataset.recording = 'true';
         } catch (err) {
             addMessage('Microphone access denied or not available.');
