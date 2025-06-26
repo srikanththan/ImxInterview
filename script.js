@@ -82,8 +82,8 @@ const trainingOptions = [
 // New Language Options
 const languageOptions = [
     { label: 'English', value: 'english' },
-    { label: 'Telugu', value: 'telugu' },
-    { label: 'Hindi', value: 'hindi' }
+    { label: 'తెలుగు', value: 'telugu' },
+    { label: 'हिन्दी', value: 'hindi' }
 ];
 
 // --- Media Recorder ---
@@ -205,14 +205,16 @@ function botThankLanguage() {
 function botAskIfReadyForInterview() {
     addMessage(`✅ Thank you. Now we'll begin your voice interview round.
 🕒 It takes around 15–20 minutes.
-🗣️ Please give voice message answers only – typed answers will not be accepted.
-🎙️ Speak clearly like you're talking to a shop owner or teammate.
-🌐 You can reply in Telugu, Hindi, or English – whichever is easiest for you.
+🎙️ Please send voice message answers only – typed answers will not be accepted.
+🗣️ Speak clearly, like you're talking to a shop owner or teammate.
+🎧 Make sure you're in a quiet place or wear earphones so your answers are clear.
+🌐 You can reply in తెలుగు, हिन्दी, or English – whichever is easiest for you.
 
-Are you ready?
-Please reply:
-✅ Yes – I'm ready
-❌ Not now – I'll reply later with "Interview Ready"`);
+Are you ready to start?
+Please reply with one of the following:
+
+✅ Yes – Start First Round
+❌ No – I'll reply "Interview Ready" when I'm ready to start`);
     state = 'waiting_for_interview_ready_confirmation';
 }
 
