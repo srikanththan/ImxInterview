@@ -5,6 +5,7 @@ const fileInput = document.getElementById('file-input');
 const aadhaarInput = document.getElementById('aadhaar-input');
 const uploadBtn = document.getElementById('upload-btn');
 const micBtn = document.getElementById('mic-btn');
+const pauseBtn = document.getElementById('pause-btn');
 
 // --- Supabase Initialization ---
 // IMPORTANT: Replace with your actual Supabase URL and Key
@@ -149,6 +150,28 @@ const localizedButtonText = {
     }
 };
 let currentQuestionIndex = 0;
+
+// --- State Persistence Functions ---
+function saveState() {
+    const stateToSave = {
+        userResponses,
+        currentQuestionIndex,
+        state
+    };
+    localStorage.setItem('imxInterviewState', JSON.stringify(stateToSave));
+}
+
+function loadState() {
+    const savedStateJSON = localStorage.getItem('imxInterviewState');
+    if (savedStateJSON) {
+        return JSON.parse(savedStateJSON);
+    }
+    return null;
+}
+
+function clearState() {
+    localStorage.removeItem('imxInterviewState');
+}
 
 // Q9: Pay Structure Clarity
 const payStructureOptions = [
@@ -361,6 +384,28 @@ function showOptions(options, stateKey) {
                 userResponses.languagePreference = opt.value;
                 addMessage('Great! Let\'s start with the first question.');
                 askVoiceQuestion(currentQuestionIndex);
+            } else if (stateKey === 'resume_confirmation') {
+                const saved = loadState();
+                if (opt.value === 'resume' && saved) {
+                    userResponses = saved.userResponses;
+                    currentQuestionIndex = saved.currentQuestionIndex;
+                    state = saved.state;
+                    addMessage('Resuming your interview...');
+                    // Resume from the correct state
+                    if (state === 'waiting_for_voice_answer') {
+                        askVoiceQuestion(currentQuestionIndex);
+                    } else if (state === 'waiting_for_pay_structure') {
+                        askPayStructure();
+                    } else if (state === 'waiting_for_training_commitment') {
+                        askTrainingCommitment();
+                    } else if (state === 'waiting_for_aadhaar_consent') {
+                        askAadhaarConsent();
+                    }
+                } else { // Start Over
+                    clearState();
+                    addMessage('No problem. Say "Hi" to start a new interview!');
+                    state = 'waiting_for_hi';
+                }
             }
         };
         buttonContainer.appendChild(btn);
@@ -395,6 +440,7 @@ function askVoiceQuestion(index) {
             }
             micBtn.textContent = buttonText.record;
             micBtn.style.display = 'block';
+            pauseBtn.style.display = 'block';
         }, 800);
         state = 'waiting_for_voice_answer';
 
@@ -403,10 +449,12 @@ function askVoiceQuestion(index) {
                 addMessage('It seems you have been inactive for a while. Please type "Interview Ready" to restart the interview process.');
                 state = 'waiting_for_hi';
                 micBtn.style.display = 'none';
+                pauseBtn.style.display = 'none';
             }
         }, 300000); // 5 minutes
     } else {
         micBtn.style.display = 'none';
+        pauseBtn.style.display = 'none';
         askPayStructure();
     }
 }
@@ -486,6 +534,7 @@ async function submitData() {
 
 function botEndInterview() {
     submitData();
+    clearState();
     state = 'done';
 }
 
@@ -499,8 +548,13 @@ chatForm.addEventListener('submit', async (e) => {
         addMessage(message, 'user');
         chatInput.value = '';
 
-        if (message.toLowerCase() === 'interview ready') {
-            state = 'waiting_for_interview_ready_confirmation';
+        if (message.toLowerCase() === 'interview ready' || message.toLowerCase() === 'resume') {
+             const savedState = loadState();
+            if (savedState) {
+                state = 'waiting_for_resume_confirmation_text';
+            } else {
+                 state = 'waiting_for_interview_ready_confirmation';
+            }
         }
 
         switch (state) {
@@ -529,6 +583,30 @@ chatForm.addEventListener('submit', async (e) => {
              case 'waiting_for_interview_ready_confirmation':
                 repromptCount = 0;
                 botAskIfReadyForInterview();
+                break;
+            case 'waiting_for_resume_confirmation_text':
+                 const saved = loadState();
+                if (saved) {
+                    userResponses = saved.userResponses;
+                    currentQuestionIndex = saved.currentQuestionIndex;
+                    state = saved.state;
+                    addMessage('Resuming your interview...');
+                     if (state === 'waiting_for_voice_answer') {
+                        askVoiceQuestion(currentQuestionIndex);
+                    } else if (state === 'waiting_for_pay_structure') {
+                        askPayStructure();
+                    } else if (state === 'waiting_for_training_commitment') {
+                        askTrainingCommitment();
+                    } else if (state === 'waiting_for_aadhaar_consent') {
+                        askAadhaarConsent();
+                    }
+                } else {
+                    addMessage('No saved session found. Say "Hi" to start a new one.');
+                    state = 'waiting_for_hi';
+                }
+                break;
+            case 'paused':
+                addMessage('Your interview is currently paused. Please type "Resume" to continue.');
                 break;
             case 'waiting_for_language_selection_to_start':
             case 'waiting_for_voice_answer':
@@ -579,6 +657,15 @@ fileInput.addEventListener('change', function() {
     }
 });
 
+pauseBtn.addEventListener('click', () => {
+    saveState();
+    addMessage('⏸️ Your interview is paused. You can close this window and come back later. Type "Resume" to continue when you are ready.');
+    micBtn.style.display = 'none';
+    pauseBtn.style.display = 'none';
+    clearTimeout(interviewTimeout); // Stop the inactivity timer
+    state = 'paused';
+});
+
 micBtn.addEventListener('click', async function(e) {
     e.preventDefault();
     chatInput.disabled = true; // Disable text input during recording
@@ -624,5 +711,20 @@ micBtn.addEventListener('click', async function(e) {
     }
 });
 
+function initializeChat() {
+    const savedState = loadState();
+    if (savedState && savedState.state !== 'done') { 
+        addMessage('Welcome back! It looks like you have a paused interview.');
+        showOptions([
+            { label: '✅ Yes, Resume', value: 'resume' },
+            { label: '❌ No, Start Over', value: 'start_over' }
+        ], 'resume_confirmation');
+        state = 'waiting_for_resume_confirmation';
+    } else {
+        addMessage('Say "Hi" to start the chat!');
+        state = 'waiting_for_hi';
+    }
+}
+
 // Initial bot message
-addMessage('Say "Hi" to start the chat!'); 
+initializeChat(); 
