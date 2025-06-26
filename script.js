@@ -178,8 +178,8 @@ function botRepromptFullName() {
 }
 
 function botAskResume() {
-    addMessage('📎 Please upload your Resume in PDF format.');
-    fileInput.accept = ".pdf";
+    addMessage('�� Please upload your latest resume.');
+    fileInput.accept = ""; // Allow all file types
     uploadBtn.style.display = 'block';
     state = 'waiting_for_resume_upload';
 }
@@ -465,11 +465,6 @@ fileInput.addEventListener('change', function() {
 
     // --- Validation for Resume ---
     if (state === 'waiting_for_resume_upload') {
-        if (uploadedFile.type !== 'application/pdf') {
-            addMessage('⚠️ Invalid file type. Please upload your Resume in PDF format only.');
-            fileInput.value = ''; // Reset the input to allow re-selection
-            return; // Stop processing and wait for a new upload
-        }
         // If valid, proceed
         userResponses.resumeFile = uploadedFile;
         addFileMessage(uploadedFile, 'user');
