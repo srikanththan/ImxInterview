@@ -212,27 +212,33 @@ const localizedMessages = {
         noProblem: 'No problem. Say "Hi" to start a new interview!',
         btnResume: '✅ Yes, Resume',
         btnStartOver: '❌ No, Start Over',
-        btnPause: '⏸️ Pause Interview'
+        btnPause: '⏸️ Pause Interview',
+        startFirst: "Great! Let's start with the first question.",
+        resumeWord: 'Resume'
     },
     telugu: {
         resume: 'మీ ఇంటర్వ్యూను తిరిగి ప్రారంభిస్తున్నాము...',
-        paused: '⏸️ మీ ఇంటర్వ్యూ నిలిపివేయబడింది. మీరు ఈ విండోను మూసివేసి తర్వాత తిరిగి వచ్చి "Resume" అని టైప్ చేసి కొనసాగించవచ్చు.',
+        paused: '⏸️ మీ ఇంటర్వ్యూ నిలిపివేయబడింది. మీరు ఈ విండోను మూసివేసి తర్వాత తిరిగి వచ్చి "{resumeWord}" అని టైప్ చేసి కొనసాగించవచ్చు.',
         welcome: 'మళ్లీ స్వాగతం! మీరు ఒక నిలిపివేసిన ఇంటర్వ్యూను కొనసాగించవచ్చు.',
         noSaved: 'ఏదైనా సేవ్ చేసిన సెషన్ కనబడలేదు. కొత్తదాన్ని ప్రారంభించడానికి "Hi" అని చెప్పండి.',
         noProblem: 'పరిస్థితి లేదు. కొత్త ఇంటర్వ్యూను ప్రారంభించడానికి "Hi" అని చెప్పండి!',
         btnResume: '✅ అవును, కొనసాగించండి',
         btnStartOver: '❌ లేదు, కొత్తదాన్ని ప్రారంభించండి',
-        btnPause: '⏸️ ఇంటర్వ్యూను నిలిపివేయండి'
+        btnPause: '⏸️ ఇంటర్వ్యూను నిలిపివేయండి',
+        startFirst: 'అద్భుతం! మొదటి ప్రశ్నను ప్రారంభిద్దాం.',
+        resumeWord: 'పునఃప్రారంభించండి'
     },
     hindi: {
         resume: 'आपका इंटरव्यू फिर से शुरू हो रहा है...',
-        paused: '⏸️ आपका इंटरव्यू रुका हुआ है। आप इस विंडो को बंद कर सकते हैं और बाद में वापस आकर "Resume" टाइप करके जारी रख सकते हैं।',
+        paused: '⏸️ आपका इंटरव्यू रुका हुआ है। आप इस विंडो को बंद कर सकते हैं और बाद में वापस आकर "{resumeWord}" टाइप करके जारी रख सकते हैं।',
         welcome: 'वापसी पर स्वागत है! ऐसा लगता है कि आपके पास एक रुका हुआ इंटरव्यू है।',
         noSaved: 'कोई सहेजा गया सत्र नहीं मिला। नया शुरू करने के लिए "Hi" टाइप करें।',
         noProblem: 'कोई बात नहीं। नया इंटरव्यू शुरू करने के लिए "Hi" टाइप करें!',
         btnResume: '✅ हाँ, फिर से शुरू करें',
         btnStartOver: '❌ नहीं, नया शुरू करें',
-        btnPause: '⏸️ इंटरव्यू रोकें'
+        btnPause: '⏸️ इंटरव्यू रोकें',
+        startFirst: 'बहुत बढ़िया! चलिए पहले सवाल से शुरू करते हैं।',
+        resumeWord: 'फिर से शुरू करें'
     }
 };
 
@@ -419,7 +425,8 @@ function showOptions(options, stateKey) {
             } else if (stateKey === 'language_preference_and_start') {
                 clearTimeout(interviewTimeout);
                 userResponses.languagePreference = opt.value;
-                addMessage('Great! Let\'s start with the first question.');
+                addMessage(`DEBUG: Lang selected: ${opt.value}`); // Temporary debug message
+                addMessage(localizedMessages[userResponses.languagePreference].startFirst);
                 askVoiceQuestion(currentQuestionIndex);
             } else if (stateKey === 'resume_confirmation') {
                 if (opt.value === 'resume') {
@@ -685,7 +692,9 @@ fileInput.addEventListener('change', function() {
 
 pauseBtn.addEventListener('click', () => {
     saveState();
-    addMessage(localizedMessages[getLang()].paused);
+    const lang = getLang();
+    const pausedMsg = localizedMessages[lang].paused.replace('{resumeWord}', localizedMessages[lang].resumeWord);
+    addMessage(pausedMsg);
     micBtn.style.display = 'none';
     pauseBtn.style.display = 'none';
     clearTimeout(interviewTimeout); // Stop the inactivity timer
