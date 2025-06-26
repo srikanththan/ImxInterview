@@ -211,7 +211,8 @@ const localizedMessages = {
         noSaved: 'No saved session found. Say "Hi" to start a new one.',
         noProblem: 'No problem. Say "Hi" to start a new interview!',
         btnResume: '✅ Yes, Resume',
-        btnStartOver: '❌ No, Start Over'
+        btnStartOver: '❌ No, Start Over',
+        btnPause: '⏸️ Pause Interview'
     },
     telugu: {
         resume: 'మీ ఇంటర్వ్యూను తిరిగి ప్రారంభిస్తున్నాము...',
@@ -220,7 +221,8 @@ const localizedMessages = {
         noSaved: 'ఏదైనా సేవ్ చేసిన సెషన్ కనబడలేదు. కొత్తదాన్ని ప్రారంభించడానికి "Hi" అని చెప్పండి.',
         noProblem: 'పరిస్థితి లేదు. కొత్త ఇంటర్వ్యూను ప్రారంభించడానికి "Hi" అని చెప్పండి!',
         btnResume: '✅ అవును, కొనసాగించండి',
-        btnStartOver: '❌ లేదు, కొత్తదాన్ని ప్రారంభించండి'
+        btnStartOver: '❌ లేదు, కొత్తదాన్ని ప్రారంభించండి',
+        btnPause: '⏸️ ఇంటర్వ్యూను నిలిపివేయండి'
     },
     hindi: {
         resume: 'आपका इंटरव्यू फिर से शुरू हो रहा है...',
@@ -229,7 +231,8 @@ const localizedMessages = {
         noSaved: 'कोई सहेजा गया सत्र नहीं मिला। नया शुरू करने के लिए "Hi" टाइप करें।',
         noProblem: 'कोई बात नहीं। नया इंटरव्यू शुरू करने के लिए "Hi" टाइप करें!',
         btnResume: '✅ हाँ, फिर से शुरू करें',
-        btnStartOver: '❌ नहीं, नया शुरू करें'
+        btnStartOver: '❌ नहीं, नया शुरू करें',
+        btnPause: '⏸️ इंटरव्यू रोकें'
     }
 };
 
@@ -460,6 +463,7 @@ function askVoiceQuestion(index) {
             }
             micBtn.textContent = buttonText.record;
             micBtn.style.display = 'block';
+            pauseBtn.textContent = localizedMessages[language].btnPause;
             pauseBtn.style.display = 'block';
         }, 800);
         state = 'waiting_for_voice_answer';
