@@ -209,21 +209,27 @@ const localizedMessages = {
         paused: '⏸️ Your interview is paused. You can close this window and come back later. Type "Resume" to continue when you are ready.',
         welcome: 'Welcome back! It looks like you have a paused interview.',
         noSaved: 'No saved session found. Say "Hi" to start a new one.',
-        noProblem: 'No problem. Say "Hi" to start a new interview!'
+        noProblem: 'No problem. Say "Hi" to start a new interview!',
+        btnResume: '✅ Yes, Resume',
+        btnStartOver: '❌ No, Start Over'
     },
     telugu: {
         resume: 'మీ ఇంటర్వ్యూను తిరిగి ప్రారంభిస్తున్నాము...',
         paused: '⏸️ మీ ఇంటర్వ్యూ నిలిపివేయబడింది. మీరు ఈ విండోను మూసివేసి తర్వాత తిరిగి వచ్చి "Resume" అని టైప్ చేసి కొనసాగించవచ్చు.',
         welcome: 'మళ్లీ స్వాగతం! మీరు ఒక నిలిపివేసిన ఇంటర్వ్యూను కొనసాగించవచ్చు.',
         noSaved: 'ఏదైనా సేవ్ చేసిన సెషన్ కనబడలేదు. కొత్తదాన్ని ప్రారంభించడానికి "Hi" అని చెప్పండి.',
-        noProblem: 'పరిస్థితి లేదు. కొత్త ఇంటర్వ్యూను ప్రారంభించడానికి "Hi" అని చెప్పండి!'
+        noProblem: 'పరిస్థితి లేదు. కొత్త ఇంటర్వ్యూను ప్రారంభించడానికి "Hi" అని చెప్పండి!',
+        btnResume: '✅ అవును, కొనసాగించండి',
+        btnStartOver: '❌ లేదు, కొత్తదాన్ని ప్రారంభించండి'
     },
     hindi: {
         resume: 'आपका इंटरव्यू फिर से शुरू हो रहा है...',
         paused: '⏸️ आपका इंटरव्यू रुका हुआ है। आप इस विंडो को बंद कर सकते हैं और बाद में वापस आकर "Resume" टाइप करके जारी रख सकते हैं।',
         welcome: 'वापसी पर स्वागत है! ऐसा लगता है कि आपके पास एक रुका हुआ इंटरव्यू है।',
         noSaved: 'कोई सहेजा गया सत्र नहीं मिला। नया शुरू करने के लिए "Hi" टाइप करें।',
-        noProblem: 'कोई बात नहीं। नया इंटरव्यू शुरू करने के लिए "Hi" टाइप करें!'
+        noProblem: 'कोई बात नहीं। नया इंटरव्यू शुरू करने के लिए "Hi" टाइप करें!',
+        btnResume: '✅ हाँ, फिर से शुरू करें',
+        btnStartOver: '❌ नहीं, नया शुरू करें'
     }
 };
 
@@ -733,8 +739,8 @@ function initializeChat() {
     if (savedState && savedState.state !== 'done') { 
         addMessage(localizedMessages[lang].welcome);
         showOptions([
-            { label: '✅ Yes, Resume', value: 'resume' },
-            { label: '❌ No, Start Over', value: 'start_over' }
+            { label: localizedMessages[lang].btnResume, value: 'resume' },
+            { label: localizedMessages[lang].btnStartOver, value: 'start_over' }
         ], 'resume_confirmation');
         state = 'waiting_for_resume_confirmation';
     } else {
