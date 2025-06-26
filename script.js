@@ -14,6 +14,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let state = 'waiting_for_hi';
 let repromptCount = 0;
 const maxReprompts = 3;
+let interviewTimeout = null; // Timer for inactivity
 
 // --- Data Storage ---
 const userResponses = {
@@ -81,9 +82,9 @@ const trainingOptions = [
 
 // New Language Options
 const languageOptions = [
-    { label: 'English', value: 'english' },
-    { label: 'తెలుగు', value: 'telugu' },
-    { label: 'हिन्दी', value: 'hindi' }
+    { label: '🔘 English', value: 'english' },
+    { label: '🔘 हिन्दी', value: 'hindi' },
+    { label: '🔘 తెలుగు', value: 'telugu' }
 ];
 
 // --- Media Recorder ---
@@ -188,34 +189,29 @@ function botAskWhatsapp() {
     state = 'waiting_for_whatsapp';
 }
 
-function botAskLanguage() {
-    addMessage('In which language do you want to respond further?');
-    showOptions(languageOptions, 'language_preference');
-}
-
-function botThankLanguage() {
-    addMessage('Thank you for sharing your language preference!');
-    showTypingIndicator();
-    setTimeout(() => {
-        hideTypingIndicator();
-        botAskIfReadyForInterview();
-    }, 600);
-}
-
 function botAskIfReadyForInterview() {
+    clearTimeout(interviewTimeout);
+
     addMessage(`✅ Thank you. Now we'll begin your voice interview round.
 🕒 It takes around 15–20 minutes.
 🎙️ Please send voice message answers only – typed answers will not be accepted.
 🗣️ Speak clearly, like you're talking to a shop owner or teammate.
 🎧 Make sure you're in a quiet place or wear earphones so your answers are clear.
-🌐 You can reply in తెలుగు, हिन्दी, or English – whichever is easiest for you.
 
-Are you ready to start?
-Please reply with one of the following:
+To begin your interview, please select your preferred reply language:`);
+    
+    showOptions(languageOptions, 'language_preference_and_start');
 
-✅ Yes – Start First Round
-❌ No – I'll reply "Interview Ready" when I'm ready to start`);
-    state = 'waiting_for_interview_ready_confirmation';
+    addMessage(`❌ If you're not ready now, simply reply "Interview Ready" whenever you want to begin later.`);
+
+    state = 'waiting_for_language_selection_to_start';
+
+    interviewTimeout = setTimeout(() => {
+        if (state === 'waiting_for_language_selection_to_start') {
+            addMessage('It seems you have been inactive for a while. Please type "Interview Ready" when you are set to begin.');
+            state = 'waiting_for_hi';
+        }
+    }, 300000); // 5 minutes = 300,000 ms
 }
 
 function askPayStructure() {
@@ -261,7 +257,12 @@ function showOptions(options, stateKey) {
             bubble.remove();
             if (stateKey === 'pay_structure') {
                 userResponses.payStructure = opt.value;
-                askTrainingCommitment();
+                if (opt.value === 'no') {
+                    addMessage('Thank you for your honesty. This role might not be the right fit, as it is incentive-only for the first few months.');
+                    botEndInterview();
+                } else {
+                    askTrainingCommitment();
+                }
             } else if (stateKey === 'training_commitment') {
                 userResponses.trainingCommitment = opt.value;
                 askAadhaarConsent();
@@ -272,9 +273,11 @@ function showOptions(options, stateKey) {
                 } else {
                     botEndInterview();
                 }
-            } else if (stateKey === 'language_preference') {
+            } else if (stateKey === 'language_preference_and_start') {
+                clearTimeout(interviewTimeout);
                 userResponses.languagePreference = opt.value;
-                botThankLanguage();
+                addMessage('Great! Let\'s start with the first question.');
+                askVoiceQuestion(currentQuestionIndex);
             }
         };
         buttonContainer.appendChild(btn);
@@ -286,22 +289,36 @@ function showOptions(options, stateKey) {
         state = 'waiting_for_pay_structure';
     } else if (stateKey === 'training_commitment') {
         state = 'waiting_for_training_commitment';
-    } else if (stateKey === 'language_preference') {
-        state = 'waiting_for_language_preference';
+    } else if (stateKey === 'language_preference_and_start') {
+        state = 'waiting_for_language_selection_to_start';
     }
 }
 
 function askVoiceQuestion(index) {
+    clearTimeout(interviewTimeout); 
+
     if (index < voiceQuestions.length) {
-        const q = voiceQuestions[index];
+        const question = voiceQuestions[index];
         showTypingIndicator();
         setTimeout(() => {
             hideTypingIndicator();
-            addMessage(`${q.question}\n\n${q.example}\n\n🎤 REPLY VIA VOICE MESSAGE ONLY`);
+            addMessage(question.question);
+            if (question.example) {
+                addMessage(question.example);
+            }
             micBtn.style.display = 'block';
-            state = `voice_question_${index}`;
-        }, 900);
+        }, 800);
+        state = 'waiting_for_voice_answer';
+
+        interviewTimeout = setTimeout(() => {
+            if (state === 'waiting_for_voice_answer') {
+                addMessage('It seems you have been inactive for a while. Please type "Interview Ready" to restart the interview process.');
+                state = 'waiting_for_hi';
+                micBtn.style.display = 'none';
+            }
+        }, 300000); // 5 minutes
     } else {
+        micBtn.style.display = 'none';
         askPayStructure();
     }
 }
@@ -387,56 +404,57 @@ function botEndInterview() {
 
 // --- Event Listeners ---
 
-chatForm.addEventListener('submit', function(e) {
+chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const userMsg = chatInput.value.trim();
-    if (!userMsg) return;
-    addMessage(userMsg, 'user');
-    chatInput.value = '';
+    const message = chatInput.value.trim();
+    if (message) {
+        addMessage(message, 'user');
+        chatInput.value = '';
 
-    if (state === 'waiting_for_hi') {
-        if (userMsg.toLowerCase() === 'hi') {
-            botAskFullName();
-        } else {
-            addMessage('Please say "Hi" to start.');
+        if (message.toLowerCase() === 'interview ready') {
+            state = 'waiting_for_interview_ready_confirmation';
         }
-    } else if (state === 'waiting_for_name') {
-        if (userMsg.length > 0) {
-            userResponses.name = userMsg;
-            botThankUser(userResponses.name);
-        } else {
-            botRepromptFullName();
+
+        switch (state) {
+            case 'waiting_for_hi':
+                if (message.toLowerCase().includes('hi') || message.toLowerCase().includes('hello') || message.toLowerCase() === 'interview ready') {
+                    repromptCount = 0;
+                    botAskFullName();
+                } else {
+                    botRepromptFullName();
+                }
+                break;
+            case 'waiting_for_name':
+                userResponses.name = message;
+                repromptCount = 0;
+                botThankUser(message);
+                break;
+            case 'waiting_for_whatsapp':
+                 if (/\d{10}/.test(message.replace(/\D/g, ''))) {
+                    userResponses.whatsappNumber = message;
+                    repromptCount = 0;
+                    botAskIfReadyForInterview();
+                } else {
+                    addMessage('Please enter a valid 10-digit WhatsApp number.');
+                }
+                break;
+             case 'waiting_for_interview_ready_confirmation':
+                repromptCount = 0;
+                botAskIfReadyForInterview();
+                break;
+            case 'waiting_for_language_selection_to_start':
+            case 'waiting_for_voice_answer':
+            case 'waiting_for_pay_structure':
+            case 'waiting_for_training_commitment':
+            case 'waiting_for_aadhaar_consent':
+                 addMessage('Please use the buttons or the voice recorder to reply.');
+                 break;
+
         }
-    } else if (state === 'waiting_for_whatsapp') {
-        if (/^\d{10,}$/.test(userMsg.replace(/\D/g, ''))) {
-            userResponses.whatsappNumber = userMsg;
-            botAskLanguage();
-        } else {
-            addMessage('Please enter a valid WhatsApp number (10 digits or more).');
-        }
-    } else if (state === 'waiting_for_interview_ready_confirmation') {
-        if (userMsg.toLowerCase().includes('yes')) {
-            askVoiceQuestion(currentQuestionIndex);
-        } else {
-            addMessage('Got it. Please type "Interview Ready" when you want to start.');
-            state = 'waiting_for_interview_start';
-        }
-    } else if (state === 'waiting_for_interview_start') {
-        if (userMsg.toLowerCase().includes('interview ready')) {
-            askVoiceQuestion(currentQuestionIndex);
-        } else {
-            addMessage('Please type "Interview Ready" to begin.');
-        }
-    } else if (state.startsWith('voice_question_')) {
-        addMessage('🗣️ Please give voice message answers only for this part.');
-    } else if (state === 'waiting_for_pay_structure' || state === 'waiting_for_training_commitment' || state === 'waiting_for_language_preference') {
-        addMessage('Please use the buttons to answer this question.');
     }
 });
 
-uploadBtn.addEventListener('click', function() {
-    fileInput.click();
-});
+uploadBtn.addEventListener('click', () => fileInput.click());
 
 fileInput.addEventListener('change', function() {
     if (!fileInput.files || fileInput.files.length === 0) {
