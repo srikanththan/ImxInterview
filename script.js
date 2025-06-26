@@ -84,7 +84,7 @@ const localizedQuestions = {
             example: "💡 ఉదాహరణ: \"అవును సర్, iAmX మొబైల్, టాబ్లెట్ లేదా సిస్టమ్‌లో పనిచేస్తుంది. ఇది షాప్ ఉపయోగం కోసం తయారు చేయబడింది మరియు నేర్చుకోవడం చాలా సులభం.\""
         },
         {
-            question: "📦 1000+ వస్తువులు ఉన్న ఒక దుకాణం అడుగుతుంది: \"మీ యాప్ బార్‌కోడ్, స్టాక్, అమ్మకాల నివేదికలు నిర్వహించగలదా?\"\nమీరు ముఖ్య లక్షణాలను ఎలా వివరిస్తారు?",
+            question: "📦 1000+ వస్తువులు ఉన్న ఒక దుకాణం అడుగుతుంది: \"మీ యాప్ బార్‌కోడ్, స్టాక్, అమ్మకాల నివేదికలను నిర్వహించగలదా?\"\nమీరు ముఖ్య లక్షణాలను ఎలా వివరిస్తారు?",
             example: "💡 ఉదాహరణ: \"అవును సర్, బార్‌కోడ్ స్కాన్, స్టాక్ ఇన్-అవుట్, రోజువారీ అమ్మకాలు మరియు నివేదికలు అన్నీ చేర్చబడ్డాయి. ఇది చాలా ఉత్పత్తులతో భారతీయ దుకాణాల కోసం తయారు చేయబడింది.\""
         },
         {
@@ -216,12 +216,7 @@ const localizedMessages = {
         startFirst: "Great! Let's start with the first question.",
         resumeWord: 'Resume',
         voiceOnly: '🎤 REPLY VIA VOICE MESSAGE ONLY',
-        invalidName: 'Please enter a valid name using only letters and spaces.',
-        selectLanguagePrompt: 'To continue, please select your preferred language:',
-        askResume: 'Please upload your latest resume.',
-        askWhatsapp: '📲 Please enter your WhatsApp number for future communication.',
-        interviewIntro: `✅ Thank you. Now we'll begin your voice interview round.\n🕒 It takes around 15–20 minutes.\n🎙️ Please send voice message answers only – typed answers will not be accepted.\n🎧 Make sure you're in a quiet place or wear earphones so your answers are clear.`,
-        ifNotReady: `❌ If you're not ready now, simply reply "Interview Ready" whenever you want to begin later.`
+        invalidName: 'Please enter a valid name using only letters and spaces.'
     },
     telugu: {
         resume: 'మీ ఇంటర్వ్యూను తిరిగి ప్రారంభిస్తున్నాము...',
@@ -235,12 +230,7 @@ const localizedMessages = {
         startFirst: 'అద్భుతం! మొదటి ప్రశ్నను ప్రారంభిద్దాం.',
         resumeWord: 'పునఃప్రారంభించండి',
         voiceOnly: '🎤 దయచేసి వాయిస్ మెసేజ్ ద్వారా మాత్రమే సమాధానం ఇవ్వండి',
-        invalidName: 'దయచేసి అక్షరాలు మరియు ఖాళీలను మాత్రమే ఉపయోగించి చెల్లుబాటు అయ్యే పేరును నమోదు చేయండి.',
-        selectLanguagePrompt: 'కొనసాగడానికి, దయచేసి మీరు ఇష్టపడే భాషను ఎంచుకోండి:',
-        askResume: 'దయచేసి మీ తాజా రెస్యూమ్‌ను అప్‌లోడ్ చేయండి.',
-        askWhatsapp: '📲 భవిష్యత్ కమ్యూనికేషన్ కోసం దయచేసి మీ WhatsApp నంబర్‌ను నమోదు చేయండి.',
-        interviewIntro: `✅ ధన్యవాదాలు. ఇప్పుడు మేము మీ వాయిస్ ఇంటర్వ్యూ రౌండ్‌ను ప్రారంభిస్తాము.\n🕒 దీనికి సుమారు 15–20 నిమిషాలు పడుతుంది.\n🎙️ దయచేసి వాయిస్ మెసేజ్ సమాధానాలు మాత్రమే పంపండి – టైప్ చేసిన సమాధానాలు అంగీకరించబడవు.\n🎧 మీ సమాధానాలు స్పష్టంగా ఉండటానికి, మీరు నిశ్శబ్ద ప్రదేశంలో ఉన్నారని లేదా ఇయర్‌ఫోన్‌లు ధరించారని నిర్ధారించుకోండి.`,
-        ifNotReady: `❌ మీరు ఇప్పుడు సిద్ధంగా లేకపోతే, తర్వాత ప్రారంభించాలనుకున్నప్పుడు "Interview Ready" అని ప్రత్యుత్తరం ఇవ్వండి.`
+        invalidName: 'దయచేసి అక్షరాలు మరియు ఖాళీలను మాత్రమే ఉపయోగించి చెల్లుబాటు అయ్యే పేరును నమోదు చేయండి.'
     },
     hindi: {
         resume: 'आपका इंटरव्यू फिर से शुरू हो रहा है...',
@@ -254,12 +244,7 @@ const localizedMessages = {
         startFirst: 'बहुत बढ़िया! चलिए पहले सवाल से शुरू करते हैं।',
         resumeWord: 'फिर से शुरू करें',
         voiceOnly: '🎤 कृपया केवल वॉयस मैसेज के माध्यम से उत्तर दें',
-        invalidName: 'कृपया केवल अक्षरों और रिक्त स्थान का उपयोग करके एक वैध नाम दर्ज करें।',
-        selectLanguagePrompt: 'जारी रखने के लिए, कृपया अपनी पसंदीदा भाषा चुनें:',
-        askResume: 'कृपया अपना नवीनतम बायोडाटा अपलोड करें।',
-        askWhatsapp: '📲 भविष्य में संचार के लिए कृपया अपना व्हाट्सएप नंबर दर्ज करें।',
-        interviewIntro: `✅ धन्यवाद। अब हम आपका वॉयस इंटरव्यू राउंड शुरू करेंगे।\n🕒 इसमें लगभग 15-20 मिनट लगते हैं।\n🎙️ कृपया केवल वॉयस संदेश उत्तर भेजें - टाइप किए गए उत्तर स्वीकार नहीं किए जाएंगे।\n🎧 सुनिश्चित करें कि आप शांत जगह पर हैं या इयरफ़ोन पहने हुए हैं ताकि आपके उत्तर स्पष्ट हों।`,
-        ifNotReady: `❌ यदि आप अभी तैयार नहीं हैं, तो बाद में शुरू करने के लिए बस "Interview Ready" का जवाब दें।`
+        invalidName: 'कृपया केवल अक्षरों और रिक्त स्थान का उपयोग करके एक वैध नाम दर्ज करें।'
     }
 };
 
@@ -335,7 +320,7 @@ function botThankUser(name) {
     showTypingIndicator();
     setTimeout(() => {
         hideTypingIndicator();
-        botAskLanguagePreference();
+        botAskResume();
     }, 600);
 }
 
@@ -348,35 +333,37 @@ function botRepromptFullName() {
     }
 }
 
-function botAskLanguagePreference() {
-    addMessage(localizedMessages[getLang()].selectLanguagePrompt);
-    showOptions(languageOptions, 'language_preference_for_setup');
-    state = 'waiting_for_language_for_setup';
-}
-
 function botAskResume() {
-    addMessage(localizedMessages[getLang()].askResume);
+    addMessage('Please upload your latest resume.');
     fileInput.accept = ""; // Allow all file types
     uploadBtn.style.display = 'block';
     state = 'waiting_for_resume_upload';
 }
 
 function botAskWhatsapp() {
-    addMessage(localizedMessages[getLang()].askWhatsapp);
+    addMessage('📲 Please enter your WhatsApp number for future communication.');
     state = 'waiting_for_whatsapp';
 }
 
 function botAskIfReadyForInterview() {
     clearTimeout(interviewTimeout);
-    const lang = getLang();
-    addMessage(localizedMessages[lang].interviewIntro);
-    addMessage(localizedMessages[lang].ifNotReady);
-    state = 'waiting_for_interview_ready';
+
+    addMessage(`✅ Thank you. Now we'll begin your voice interview round.
+🕒 It takes around 15–20 minutes.
+🎙️ Please send voice message answers only – typed answers will not be accepted.
+🎧 Make sure you're in a quiet place or wear earphones so your answers are clear.
+
+To begin your interview, please select your preferred reply language:`);
+    
+    showOptions(languageOptions, 'language_preference_and_start');
+
+    addMessage(`❌ If you're not ready now, simply reply "Interview Ready" whenever you want to begin later.`);
+
+    state = 'waiting_for_language_selection_to_start';
 
     interviewTimeout = setTimeout(() => {
-        if (state === 'waiting_for_interview_ready') {
-            const message = localizedMessages[lang].ifNotReady.replace('❌', '🕒');
-            addMessage(message);
+        if (state === 'waiting_for_language_selection_to_start') {
+            addMessage('It seems you have been inactive for a while. Please type "Interview Ready" when you are set to begin.');
             state = 'waiting_for_hi';
         }
     }, 300000); // 5 minutes = 300,000 ms
@@ -441,9 +428,11 @@ function showOptions(options, stateKey) {
                 } else {
                     botEndInterview();
                 }
-            } else if (stateKey === 'language_preference_for_setup') {
+            } else if (stateKey === 'language_preference_and_start') {
+                clearTimeout(interviewTimeout);
                 userResponses.languagePreference = opt.value;
-                botAskResume();
+                addMessage(localizedMessages[userResponses.languagePreference].startFirst);
+                askVoiceQuestion(currentQuestionIndex);
             } else if (stateKey === 'resume_confirmation') {
                 if (opt.value === 'resume') {
                     resumeInterview();
@@ -463,8 +452,8 @@ function showOptions(options, stateKey) {
         state = 'waiting_for_pay_structure';
     } else if (stateKey === 'training_commitment') {
         state = 'waiting_for_training_commitment';
-    } else if (stateKey === 'language_preference_for_setup') {
-        state = 'waiting_for_language_for_setup';
+    } else if (stateKey === 'language_preference_and_start') {
+        state = 'waiting_for_language_selection_to_start';
     }
 }
 
@@ -650,21 +639,19 @@ chatForm.addEventListener('submit', async (e) => {
                     repromptCount = 0;
                     botAskIfReadyForInterview();
                 } else {
-                    addMessage(localizedMessages[getLang()].invalidName);
+                    addMessage('Please enter a valid 10-digit WhatsApp number.');
                 }
                 break;
              case 'waiting_for_interview_ready_confirmation':
                 repromptCount = 0;
-                askVoiceQuestion(currentQuestionIndex);
+                botAskIfReadyForInterview();
                 break;
             case 'paused':
                 if (message.toLowerCase() !== 'resume') {
-                    const lang = getLang();
-                    const pausedMsg = localizedMessages[lang].paused.replace('{resumeWord}', localizedMessages[lang].resumeWord);
-                    addMessage(pausedMsg);
+                    addMessage('Your interview is currently paused. Please type "Resume" to continue.');
                 }
                 break;
-            case 'waiting_for_language_for_setup':
+            case 'waiting_for_language_selection_to_start':
             case 'waiting_for_voice_answer':
             case 'waiting_for_pay_structure':
             case 'waiting_for_training_commitment':
