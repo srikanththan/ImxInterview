@@ -369,8 +369,8 @@ function botAskWhatsapp() {
 function botAskIfReadyForInterview() {
     clearTimeout(interviewTimeout);
     const lang = getLang();
-    addMessage(localizedMessages[lang].interviewIntro);
-    addMessage(localizedMessages[lang].ifNotReady);
+    const fullMessage = `${localizedMessages[lang].interviewIntro}<br><br>${localizedMessages[lang].ifNotReady}`;
+    addMessage(fullMessage);
     state = 'waiting_for_interview_ready';
 
     interviewTimeout = setTimeout(() => {
