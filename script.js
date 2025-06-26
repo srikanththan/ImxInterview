@@ -203,6 +203,34 @@ const aadhaarConsentOptions = [
     { label: 'No', value: 'no' }
 ];
 
+const localizedMessages = {
+    english: {
+        resume: 'Resuming your interview...',
+        paused: '⏸️ Your interview is paused. You can close this window and come back later. Type "Resume" to continue when you are ready.',
+        welcome: 'Welcome back! It looks like you have a paused interview.',
+        noSaved: 'No saved session found. Say "Hi" to start a new one.',
+        noProblem: 'No problem. Say "Hi" to start a new interview!'
+    },
+    telugu: {
+        resume: 'మీ ఇంటర్వ్యూను తిరిగి ప్రారంభిస్తున్నాము...',
+        paused: '⏸️ మీ ఇంటర్వ్యూ నిలిపివేయబడింది. మీరు ఈ విండోను మూసివేసి తర్వాత తిరిగి వచ్చి "Resume" అని టైప్ చేసి కొనసాగించవచ్చు.',
+        welcome: 'మళ్లీ స్వాగతం! మీరు ఒక నిలిపివేసిన ఇంటర్వ్యూను కొనసాగించవచ్చు.',
+        noSaved: 'ఏదైనా సేవ్ చేసిన సెషన్ కనబడలేదు. కొత్తదాన్ని ప్రారంభించడానికి "Hi" అని చెప్పండి.',
+        noProblem: 'పరిస్థితి లేదు. కొత్త ఇంటర్వ్యూను ప్రారంభించడానికి "Hi" అని చెప్పండి!'
+    },
+    hindi: {
+        resume: 'आपका इंटरव्यू फिर से शुरू हो रहा है...',
+        paused: '⏸️ आपका इंटरव्यू रुका हुआ है। आप इस विंडो को बंद कर सकते हैं और बाद में वापस आकर "Resume" टाइप करके जारी रख सकते हैं।',
+        welcome: 'वापसी पर स्वागत है! ऐसा लगता है कि आपके पास एक रुका हुआ इंटरव्यू है।',
+        noSaved: 'कोई सहेजा गया सत्र नहीं मिला। नया शुरू करने के लिए "Hi" टाइप करें।',
+        noProblem: 'कोई बात नहीं। नया इंटरव्यू शुरू करने के लिए "Hi" टाइप करें!'
+    }
+};
+
+function getLang() {
+    return userResponses.languagePreference || 'english';
+}
+
 function addMessage(text, sender = 'bot') {
     const bubble = document.createElement('div');
     bubble.className = `chat-bubble ${sender}`;
@@ -389,7 +417,7 @@ function showOptions(options, stateKey) {
                     resumeInterview();
                 } else { // Start Over
                     clearState();
-                    addMessage('No problem. Say "Hi" to start a new interview!');
+                    addMessage(localizedMessages[getLang()].noProblem);
                     state = 'waiting_for_hi';
                 }
             }
@@ -530,7 +558,7 @@ function resumeInterview() {
         Object.assign(userResponses, saved.userResponses);
         currentQuestionIndex = saved.currentQuestionIndex;
         state = saved.state;
-        addMessage('Resuming your interview...');
+        addMessage(localizedMessages[getLang()].resume);
         if (state === 'waiting_for_voice_answer') {
             askVoiceQuestion(currentQuestionIndex);
         } else if (state === 'waiting_for_pay_structure') {
@@ -541,7 +569,7 @@ function resumeInterview() {
             askAadhaarConsent();
         }
     } else {
-        addMessage('No saved session found. Say "Hi" to start a new one.');
+        addMessage(localizedMessages[getLang()].noSaved);
         state = 'waiting_for_hi';
     }
 }
@@ -647,7 +675,7 @@ fileInput.addEventListener('change', function() {
 
 pauseBtn.addEventListener('click', () => {
     saveState();
-    addMessage('⏸️ Your interview is paused. You can close this window and come back later. Type "Resume" to continue when you are ready.');
+    addMessage(localizedMessages[getLang()].paused);
     micBtn.style.display = 'none';
     pauseBtn.style.display = 'none';
     clearTimeout(interviewTimeout); // Stop the inactivity timer
@@ -701,8 +729,9 @@ micBtn.addEventListener('click', async function(e) {
 
 function initializeChat() {
     const savedState = loadState();
+    const lang = savedState && savedState.userResponses && savedState.userResponses.languagePreference ? savedState.userResponses.languagePreference : 'english';
     if (savedState && savedState.state !== 'done') { 
-        addMessage('Welcome back! It looks like you have a paused interview.');
+        addMessage(localizedMessages[lang].welcome);
         showOptions([
             { label: '✅ Yes, Resume', value: 'resume' },
             { label: '❌ No, Start Over', value: 'start_over' }
