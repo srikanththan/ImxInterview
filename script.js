@@ -178,7 +178,7 @@ function botRepromptFullName() {
 }
 
 function botAskResume() {
-    addMessage('�� Please upload your latest resume.');
+    addMessage('Please upload your latest resume.');
     fileInput.accept = ""; // Allow all file types
     uploadBtn.style.display = 'block';
     state = 'waiting_for_resume_upload';
@@ -517,7 +517,7 @@ micBtn.addEventListener('click', async function(e) {
                 micBtn.disabled = false;
                 chatInput.disabled = false; // Re-enable text input
 
-                if (state.startsWith('voice_question_')) {
+                if (state === 'waiting_for_voice_answer') {
                     userResponses.interviewAnswers.push(audioBlob);
                     currentQuestionIndex++;
                     askVoiceQuestion(currentQuestionIndex);
