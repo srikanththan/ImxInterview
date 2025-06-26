@@ -1,19 +1,20 @@
 body {
     font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
     background: #f0f4f8; /* Softer background */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
     margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* Prevent body scrolling */
+}
+
+html {
+    height: 100%;
+    width: 100%;
 }
 
 .page-logo {
-    position: absolute;
-    top: 24px;
-    left: 24px;
-    z-index: 10;
-    text-align: center;
+    display: none; /* We will hide the top-left logo for a cleaner mobile-first view */
 }
 
 .page-logo img {
@@ -38,15 +39,14 @@ body {
 
 .chat-container {
     background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-    width: 400px;
-    max-width: 95vw;
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    height: 650px;
-    overflow: hidden;
-    border: 1px solid #e3e8ee;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    max-width: 100%; /* Override previous max-width */
 }
 
 .chat-header {
