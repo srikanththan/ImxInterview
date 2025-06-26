@@ -519,10 +519,4 @@ micBtn.addEventListener('click', async function(e) {
 });
 
 // Initial bot message
-addMessage('Say "Hi" to start the chat!');
-
-@media (max-width: 600px) {
-  .page-logo {
-    display: none;
-  }
-} 
+addMessage('Say "Hi" to start the chat!'); 
