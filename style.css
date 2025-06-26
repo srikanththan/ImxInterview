@@ -277,4 +277,26 @@ body {
   .page-logo {
     display: none;
   }
+
+  body {
+    /* Remove centering to allow full-screen layout on mobile */
+    display: block; 
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* Prevent body from scrolling */
+  }
+
+  html {
+      height: 100%;
+      width: 100%;
+  }
+
+  .chat-container {
+    height: 100%;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+  }
 } 
