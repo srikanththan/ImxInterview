@@ -548,13 +548,29 @@ chatForm.addEventListener('submit', async (e) => {
         addMessage(message, 'user');
         chatInput.value = '';
 
-        if (message.toLowerCase() === 'interview ready' || message.toLowerCase() === 'resume') {
-             const savedState = loadState();
-            if (savedState) {
-                state = 'waiting_for_resume_confirmation_text';
-            } else {
-                 state = 'waiting_for_interview_ready_confirmation';
+        if (message.toLowerCase() === 'resume') {
+            const saved = loadState();
+            if (saved) {
+                userResponses = saved.userResponses;
+                currentQuestionIndex = saved.currentQuestionIndex;
+                state = saved.state;
+                addMessage('Resuming your interview...');
+                // Resume from the correct state
+                if (state === 'waiting_for_voice_answer') {
+                    askVoiceQuestion(currentQuestionIndex);
+                } else if (state === 'waiting_for_pay_structure') {
+                    askPayStructure();
+                } else if (state === 'waiting_for_training_commitment') {
+                    askTrainingCommitment();
+                } else if (state === 'waiting_for_aadhaar_consent') {
+                    askAadhaarConsent();
+                }
+                return; // Exit after handling resume
             }
+        }
+        
+        if (message.toLowerCase() === 'interview ready') {
+            state = 'waiting_for_interview_ready_confirmation';
         }
 
         switch (state) {
@@ -584,29 +600,10 @@ chatForm.addEventListener('submit', async (e) => {
                 repromptCount = 0;
                 botAskIfReadyForInterview();
                 break;
-            case 'waiting_for_resume_confirmation_text':
-                 const saved = loadState();
-                if (saved) {
-                    userResponses = saved.userResponses;
-                    currentQuestionIndex = saved.currentQuestionIndex;
-                    state = saved.state;
-                    addMessage('Resuming your interview...');
-                     if (state === 'waiting_for_voice_answer') {
-                        askVoiceQuestion(currentQuestionIndex);
-                    } else if (state === 'waiting_for_pay_structure') {
-                        askPayStructure();
-                    } else if (state === 'waiting_for_training_commitment') {
-                        askTrainingCommitment();
-                    } else if (state === 'waiting_for_aadhaar_consent') {
-                        askAadhaarConsent();
-                    }
-                } else {
-                    addMessage('No saved session found. Say "Hi" to start a new one.');
-                    state = 'waiting_for_hi';
-                }
-                break;
             case 'paused':
-                addMessage('Your interview is currently paused. Please type "Resume" to continue.');
+                if (message.toLowerCase() !== 'resume') {
+                    addMessage('Your interview is currently paused. Please type "Resume" to continue.');
+                }
                 break;
             case 'waiting_for_language_selection_to_start':
             case 'waiting_for_voice_answer':
