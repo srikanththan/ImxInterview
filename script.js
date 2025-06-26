@@ -385,22 +385,8 @@ function showOptions(options, stateKey) {
                 addMessage('Great! Let\'s start with the first question.');
                 askVoiceQuestion(currentQuestionIndex);
             } else if (stateKey === 'resume_confirmation') {
-                const saved = loadState();
-                if (opt.value === 'resume' && saved) {
-                    userResponses = saved.userResponses;
-                    currentQuestionIndex = saved.currentQuestionIndex;
-                    state = saved.state;
-                    addMessage('Resuming your interview...');
-                    // Resume from the correct state
-                    if (state === 'waiting_for_voice_answer') {
-                        askVoiceQuestion(currentQuestionIndex);
-                    } else if (state === 'waiting_for_pay_structure') {
-                        askPayStructure();
-                    } else if (state === 'waiting_for_training_commitment') {
-                        askTrainingCommitment();
-                    } else if (state === 'waiting_for_aadhaar_consent') {
-                        askAadhaarConsent();
-                    }
+                if (opt.value === 'resume') {
+                    resumeInterview();
                 } else { // Start Over
                     clearState();
                     addMessage('No problem. Say "Hi" to start a new interview!');
@@ -538,6 +524,27 @@ function botEndInterview() {
     state = 'done';
 }
 
+function resumeInterview() {
+    const saved = loadState();
+    if (saved) {
+        Object.assign(userResponses, saved.userResponses);
+        currentQuestionIndex = saved.currentQuestionIndex;
+        state = saved.state;
+        addMessage('Resuming your interview...');
+        if (state === 'waiting_for_voice_answer') {
+            askVoiceQuestion(currentQuestionIndex);
+        } else if (state === 'waiting_for_pay_structure') {
+            askPayStructure();
+        } else if (state === 'waiting_for_training_commitment') {
+            askTrainingCommitment();
+        } else if (state === 'waiting_for_aadhaar_consent') {
+            askAadhaarConsent();
+        }
+    } else {
+        addMessage('No saved session found. Say "Hi" to start a new one.');
+        state = 'waiting_for_hi';
+    }
+}
 
 // --- Event Listeners ---
 
@@ -549,24 +556,8 @@ chatForm.addEventListener('submit', async (e) => {
         chatInput.value = '';
 
         if (message.toLowerCase() === 'resume') {
-            const saved = loadState();
-            if (saved) {
-                userResponses = saved.userResponses;
-                currentQuestionIndex = saved.currentQuestionIndex;
-                state = saved.state;
-                addMessage('Resuming your interview...');
-                // Resume from the correct state
-                if (state === 'waiting_for_voice_answer') {
-                    askVoiceQuestion(currentQuestionIndex);
-                } else if (state === 'waiting_for_pay_structure') {
-                    askPayStructure();
-                } else if (state === 'waiting_for_training_commitment') {
-                    askTrainingCommitment();
-                } else if (state === 'waiting_for_aadhaar_consent') {
-                    askAadhaarConsent();
-                }
-                return; // Exit after handling resume
-            }
+            resumeInterview();
+            return;
         }
         
         if (message.toLowerCase() === 'interview ready') {
