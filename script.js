@@ -425,7 +425,6 @@ function showOptions(options, stateKey) {
             } else if (stateKey === 'language_preference_and_start') {
                 clearTimeout(interviewTimeout);
                 userResponses.languagePreference = opt.value;
-                addMessage(`DEBUG: Lang selected: ${opt.value}`); // Temporary debug message
                 addMessage(localizedMessages[userResponses.languagePreference].startFirst);
                 askVoiceQuestion(currentQuestionIndex);
             } else if (stateKey === 'resume_confirmation') {
