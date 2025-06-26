@@ -214,7 +214,8 @@ const localizedMessages = {
         btnStartOver: '❌ No, Start Over',
         btnPause: '⏸️ Pause Interview',
         startFirst: "Great! Let's start with the first question.",
-        resumeWord: 'Resume'
+        resumeWord: 'Resume',
+        voiceOnly: '🎤 REPLY VIA VOICE MESSAGE ONLY'
     },
     telugu: {
         resume: 'మీ ఇంటర్వ్యూను తిరిగి ప్రారంభిస్తున్నాము...',
@@ -226,7 +227,8 @@ const localizedMessages = {
         btnStartOver: '❌ లేదు, కొత్తదాన్ని ప్రారంభించండి',
         btnPause: '⏸️ ఇంటర్వ్యూను నిలిపివేయండి',
         startFirst: 'అద్భుతం! మొదటి ప్రశ్నను ప్రారంభిద్దాం.',
-        resumeWord: 'పునఃప్రారంభించండి'
+        resumeWord: 'పునఃప్రారంభించండి',
+        voiceOnly: '🎤 దయచేసి వాయిస్ మెసేజ్ ద్వారా మాత్రమే సమాధానం ఇవ్వండి'
     },
     hindi: {
         resume: 'आपका इंटरव्यू फिर से शुरू हो रहा है...',
@@ -238,7 +240,8 @@ const localizedMessages = {
         btnStartOver: '❌ नहीं, नया शुरू करें',
         btnPause: '⏸️ इंटरव्यू रोकें',
         startFirst: 'बहुत बढ़िया! चलिए पहले सवाल से शुरू करते हैं।',
-        resumeWord: 'फिर से शुरू करें'
+        resumeWord: 'फिर से शुरू करें',
+        voiceOnly: '🎤 कृपया केवल वॉयस मैसेज के माध्यम से उत्तर दें'
     }
 };
 
@@ -463,10 +466,11 @@ function askVoiceQuestion(index) {
         showTypingIndicator();
         setTimeout(() => {
             hideTypingIndicator();
-            addMessage(question.question);
+            let fullMessage = `${localizedMessages[language].voiceOnly}<br><br>${question.question}`;
             if (question.example) {
-                addMessage(question.example);
+                fullMessage += `<br><br>${question.example}`;
             }
+            addMessage(fullMessage);
             micBtn.textContent = buttonText.record;
             micBtn.style.display = 'block';
             pauseBtn.textContent = localizedMessages[language].btnPause;
