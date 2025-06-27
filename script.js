@@ -661,6 +661,7 @@ async function submitData() {
             resume_file_path: resumePath,
             aadhaar_file_path: aadhaarPath,
             language_audio_path: languagePath,
+            language_preference: userResponses.languagePreference,
             pay_structure: userResponses.payStructure,
             training_commitment: userResponses.trainingCommitment,
             final_confirmation: userResponses.finalConfirmation,
