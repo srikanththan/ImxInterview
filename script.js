@@ -310,6 +310,39 @@ function hideTypingIndicator() {
     }
 }
 
+function showOptions(options, stateKey) {
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble bot';
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.display = 'flex';
+    buttonContainer.style.flexDirection = 'column';
+    buttonContainer.style.gap = '10px';
+    buttonContainer.style.marginTop = '10px';
+
+    options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.textContent = opt.label;
+        btn.className = 'option-btn';
+        btn.onclick = () => {
+            addMessage(opt.label, 'user');
+            bubble.remove();
+            if (stateKey === 'resume_confirmation') {
+                if (opt.value === 'resume') {
+                    resumeInterview();
+                } else {
+                    clearState();
+                    addMessage(localizedMessages[getLang()].noProblem);
+                    state = 'waiting_for_hi';
+                }
+            }
+        };
+        buttonContainer.appendChild(btn);
+    });
+    bubble.appendChild(buttonContainer);
+    chatWindow.appendChild(bubble);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
 // --- Bot Functions ---
 
 function botAskFullName() {
@@ -336,8 +369,8 @@ function botRepromptFullName() {
 }
 
 function botAskResume() {
-    addMessage('Please upload your latest resume.');
-    fileInput.accept = ""; // Allow all file types
+    addMessage('Please upload your latest resume (PDF or Image only).');
+    fileInput.accept = ".pdf,.jpg,.jpeg,.png"; // Restrict to PDF and image files
     uploadBtn.style.display = 'block';
     state = 'waiting_for_resume_upload';
 }
@@ -790,6 +823,13 @@ fileInput.addEventListener('change', function() {
 
     // --- Validation for Resume ---
     if (state === 'waiting_for_resume_upload') {
+        // Only allow PDF or image files
+        const isValidResume = uploadedFile.type === 'application/pdf' || uploadedFile.type.startsWith('image/');
+        if (!isValidResume) {
+            addMessage('⚠️ Invalid file type. Please upload your resume as a PDF or an Image file.');
+            fileInput.value = '';
+            return;
+        }
         // If valid, proceed
         userResponses.resumeFile = uploadedFile;
         addFileMessage(uploadedFile, 'user');
