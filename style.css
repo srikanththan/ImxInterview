@@ -210,6 +210,22 @@ body {
     border-color: #94a3b8;
 }
 
+.chat-bubble .option-btn {
+    white-space: normal;
+    word-break: break-word;
+    max-width: 100%;
+    text-align: left;
+    padding: 10px 16px;
+    height: auto;
+    line-height: 1.4;
+}
+
+.chat-bubble div {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .typing-indicator {
     display: flex;
     align-items: center;

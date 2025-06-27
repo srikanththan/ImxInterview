@@ -26,8 +26,9 @@ const userResponses = {
     interviewAnswers: [],
     payStructure: null,
     trainingCommitment: null,
-    aadhaarConsent: null,
-    aadhaarFile: null
+    finalConfirmation: null,
+    aadhaarFile: null,
+    discussionVoiceNote: null
 };
 
 // --- Localized Interview Questions ---
@@ -198,9 +199,10 @@ const languageOptions = [
 let mediaRecorder = null;
 let audioChunks = [];
 
-const aadhaarConsentOptions = [
-    { label: 'Yes', value: 'yes' },
-    { label: 'No', value: 'no' }
+const finalConfirmationOptions = [
+    { label: '✅ Yes, I understand and willing to proceed', value: 'yes_proceed' },
+    { label: '🤝 Need to discuss', value: 'discuss' },
+    { label: '❌ No, I need a fixed salary (you will not be considered for current role)', value: 'no_fixed_salary' }
 ];
 
 const localizedMessages = {
@@ -348,20 +350,66 @@ function botAskWhatsapp() {
 function botAskIfReadyForInterview() {
     clearTimeout(interviewTimeout);
 
-    addMessage(`✅ Thank you. Now we'll begin your voice interview round.
-🕒 It takes around 15–20 minutes.
-🎙️ Please send voice message answers only – typed answers will not be accepted.
-🎧 Make sure you're in a quiet place or wear earphones so your answers are clear.
+    // Create a single chat bubble for the intro and language selection
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble bot';
+    bubble.innerHTML = `
+        ✅ Thank you. Now we'll begin your <b>"voice interview round"</b>.<br>
+        🕒 It takes around <b>"15–20 minutes"</b>.<br>
+        🎙️ Please send <b>voice message answers only</b> – typed answers <b>will not be accepted</b>.<br>
+        🗣️ Speak clearly, like you're talking to a <b>shop owner or teammate</b>.<br>
+        🎧 Make sure you're in a quiet place or wear earphones so your answers are clear.<br><br>
+        <b>To begin your interview, please select your preferred reply language:</b>
+    `;
 
-To begin your interview, please select your preferred reply language:`);
-    
-    showOptions(languageOptions, 'language_preference_and_start');
+    // Add language buttons (native scripts)
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.display = 'flex';
+    buttonContainer.style.flexDirection = 'column';
+    buttonContainer.style.gap = '10px';
+    buttonContainer.style.marginTop = '10px';
+    [
+        { label: 'English', value: 'english' },
+        { label: 'हिन्दी', value: 'hindi' },
+        { label: 'తెలుగు', value: 'telugu' }
+    ].forEach(function(opt) {
+        const btn = document.createElement('button');
+        btn.textContent = opt.label;
+        btn.className = 'option-btn';
+        btn.onclick = function() {
+            addMessage(opt.label, 'user');
+            // Disable all language buttons after selection
+            const allButtons = buttonContainer.querySelectorAll('.option-btn');
+            allButtons.forEach(button => {
+                button.disabled = true;
+            });
 
-    addMessage(`❌ If you're not ready now, simply reply "Interview Ready" whenever you want to begin later.`);
+            clearTimeout(interviewTimeout);
+            userResponses.languagePreference = opt.value;
+            addMessage(localizedMessages[userResponses.languagePreference].startFirst);
+            askVoiceQuestion(currentQuestionIndex);
+        };
+        buttonContainer.appendChild(btn);
+    });
+    bubble.appendChild(buttonContainer);
+
+    // Add "Once you select..." and not ready instruction
+    const info = document.createElement('div');
+    info.style.marginTop = '10px';
+    info.innerHTML = 'Once you select, we\'ll start the first round of questions.';
+    bubble.appendChild(info);
+
+    const notReady = document.createElement('div');
+    notReady.style.marginTop = '10px';
+    notReady.innerHTML = '❌ If you\'re not ready now, simply reply "Interview Ready" whenever you want to begin later.';
+    bubble.appendChild(notReady);
+
+    chatWindow.appendChild(bubble);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
 
     state = 'waiting_for_language_selection_to_start';
 
-    interviewTimeout = setTimeout(() => {
+    interviewTimeout = setTimeout(function() {
         if (state === 'waiting_for_language_selection_to_start') {
             addMessage('It seems you have been inactive for a while. Please type "Interview Ready" when you are set to begin.');
             state = 'waiting_for_hi';
@@ -371,21 +419,135 @@ To begin your interview, please select your preferred reply language:`);
 
 function askPayStructure() {
     setTimeout(() => {
-        addMessage('💼 This is an incentive-only role (no fixed pay) for the first 3–6 months.<br>📌 You will earn:<br>– 15% flat commission per sale (unlimited)<br>– Bonus if you perform well<br>– Full-time fixed pay onboarding only after review<br><br>💡 Example: You close 20 stores → ₹1,650 × 20 = ₹33,000/month.<br>If you target chain outlets or referrals, even higher is possible.<br><br>✅ Do you fully understand this pay system?<br>Please choose one:<br>✅ Yes, I understand clearly<br>🤝 Willing to discuss<br>❌ No, I need a fixed salary<br>👉 REPLY WITH ONE OPTION ONLY');
-        showOptions(payStructureOptions, 'pay_structure');
+        const questionText = '💼 This is an incentive-only role (no fixed pay) for the first 3–6 months.<br>📌 You will earn:<br>– 15% flat commission per sale (unlimited)<br>– Bonus if you perform well<br>– Full-time fixed pay onboarding only after review<br><br>💡 Example: You close 20 stores → ₹1,650 × 20 = ₹33,000/month.<br>If you target chain outlets or referrals, even higher is possible.<br><br>✅ Do you fully understand this pay system?<br>Please choose one:';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble bot';
+        bubble.innerHTML = questionText;
+
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.flexDirection = 'column';
+        buttonContainer.style.gap = '10px';
+        buttonContainer.style.marginTop = '10px';
+
+        payStructureOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.textContent = opt.label;
+            btn.className = 'option-btn';
+            btn.onclick = () => {
+                addMessage(opt.label, 'user');
+                userResponses.payStructure = opt.value;
+
+                const allButtons = buttonContainer.querySelectorAll('.option-btn');
+                allButtons.forEach(button => {
+                    button.disabled = true;
+                });
+
+                askTrainingCommitment();
+            };
+            buttonContainer.appendChild(btn);
+        });
+
+        bubble.appendChild(buttonContainer);
+        chatWindow.appendChild(bubble);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        state = 'waiting_for_pay_structure';
     }, 600);
 }
 
 function askTrainingCommitment() {
     setTimeout(() => {
-        addMessage('🧠 We give 2 weeks of training before you start.<br>📍 It will be 3–4 hours/day in Banjara Hills, Road No. 12.<br>This is to help you feel confident client during demos and understand what you are selling.<br><br>✅ Are you willing to attend this training?<br>Please choose one:<br>✅ Yes, I can come<br>📲 Remote preferred<br>🤝 Willing to discuss<br>👉 REPLY WITH ONE OPTION ONLY');
-        showOptions(trainingOptions, 'training_commitment');
+        const questionText = '🧠 We give 2 weeks of training before you start.<br>📍 It will be 3–4 hours/day in Banjara Hills, Road No. 12.<br>This is to help you feel confident client during demos and understand what you are selling.<br><br>✅ Are you willing to attend this training?<br>Please choose one:';
+        
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble bot';
+        bubble.innerHTML = questionText;
+
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.flexDirection = 'column';
+        buttonContainer.style.gap = '10px';
+        buttonContainer.style.marginTop = '10px';
+
+        trainingOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.textContent = opt.label;
+            btn.className = 'option-btn';
+            btn.onclick = () => {
+                addMessage(opt.label, 'user');
+                userResponses.trainingCommitment = opt.value;
+                
+                const allButtons = buttonContainer.querySelectorAll('.option-btn');
+                allButtons.forEach(button => {
+                    button.disabled = true;
+                });
+                
+                askFinalConfirmation();
+            };
+            buttonContainer.appendChild(btn);
+        });
+
+        bubble.appendChild(buttonContainer);
+        chatWindow.appendChild(bubble);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        state = 'waiting_for_training_commitment';
+
     }, 600);
 }
 
-function askAadhaarConsent() {
-    addMessage('If you understood the entire role specifications, please upload the Aadhaar.');
-    showOptions(aadhaarConsentOptions, 'aadhaar_consent');
+function askFinalConfirmation() {
+    const questionText = 'Do you fully understand this pay system and are willing to proceed with the application?';
+    
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble bot';
+    bubble.innerHTML = questionText;
+
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.display = 'flex';
+    buttonContainer.style.flexDirection = 'column';
+    buttonContainer.style.gap = '10px';
+    buttonContainer.style.marginTop = '10px';
+
+    finalConfirmationOptions.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.textContent = opt.label;
+        btn.className = 'option-btn';
+        btn.onclick = () => {
+            addMessage(opt.label, 'user');
+            userResponses.finalConfirmation = opt.value;
+
+            const allButtons = buttonContainer.querySelectorAll('.option-btn');
+            allButtons.forEach(button => {
+                button.disabled = true;
+            });
+
+            if (opt.value === 'yes_proceed') {
+                addMessage('Congratulations on completing round 1, we are excited to review your application and our team will reach out if you are shortlisted for Round 2, good luck.');
+                botEndInterview();
+            } else if (opt.value === 'discuss') {
+                askForDiscussionVoiceNote();
+            } else if (opt.value === 'no_fixed_salary') {
+                addMessage('Thank you for your time, we will keep your profile handy and reach out to you if we have a role which matches your requirements, good luck.');
+                botEndInterview();
+            }
+        };
+        buttonContainer.appendChild(btn);
+    });
+
+    bubble.appendChild(buttonContainer);
+    chatWindow.appendChild(bubble);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+    state = 'waiting_for_final_confirmation';
+}
+
+function askForDiscussionVoiceNote() {
+    addMessage('Understood. Please record a detailed voice note explaining your concerns or any questions you have.');
+    const language = userResponses.languagePreference || 'english';
+    const buttonText = localizedButtonText[language];
+    micBtn.textContent = buttonText.record;
+    micBtn.style.display = 'block';
+    state = 'waiting_for_discussion_voice_note';
 }
 
 function botAskAadhaar() {
@@ -393,68 +555,6 @@ function botAskAadhaar() {
     fileInput.accept = ".pdf,.jpg,.jpeg,.png";
     uploadBtn.style.display = 'block';
     state = 'waiting_for_aadhaar_upload';
-}
-
-function showOptions(options, stateKey) {
-    const bubble = document.createElement('div');
-    bubble.className = 'chat-bubble bot';
-    const buttonContainer = document.createElement('div');
-    buttonContainer.style.display = 'flex';
-    buttonContainer.style.gap = '10px';
-    buttonContainer.style.marginTop = '10px';
-
-    options.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.textContent = opt.label;
-        btn.className = 'option-btn';
-        btn.onclick = () => {
-            addMessage(opt.label, 'user');
-            bubble.remove();
-            if (stateKey === 'pay_structure') {
-                userResponses.payStructure = opt.value;
-                if (opt.value === 'no') {
-                    addMessage('Thank you for your honesty. This role might not be the right fit, as it is incentive-only for the first few months.');
-                    botEndInterview();
-                } else {
-                    askTrainingCommitment();
-                }
-            } else if (stateKey === 'training_commitment') {
-                userResponses.trainingCommitment = opt.value;
-                askAadhaarConsent();
-            } else if (stateKey === 'aadhaar_consent') {
-                userResponses.aadhaarConsent = opt.value;
-                if (opt.value === 'yes') {
-                    botAskAadhaar();
-                } else {
-                    botEndInterview();
-                }
-            } else if (stateKey === 'language_preference_and_start') {
-                clearTimeout(interviewTimeout);
-                userResponses.languagePreference = opt.value;
-                addMessage(localizedMessages[userResponses.languagePreference].startFirst);
-                askVoiceQuestion(currentQuestionIndex);
-            } else if (stateKey === 'resume_confirmation') {
-                if (opt.value === 'resume') {
-                    resumeInterview();
-                } else { // Start Over
-                    clearState();
-                    addMessage(localizedMessages[getLang()].noProblem);
-                    state = 'waiting_for_hi';
-                }
-            }
-        };
-        buttonContainer.appendChild(btn);
-    });
-    bubble.appendChild(buttonContainer);
-    chatWindow.appendChild(bubble);
-    chatWindow.scrollTop = chatWindow.scrollHeight;
-    if (stateKey === 'pay_structure') {
-        state = 'waiting_for_pay_structure';
-    } else if (stateKey === 'training_commitment') {
-        state = 'waiting_for_training_commitment';
-    } else if (stateKey === 'language_preference_and_start') {
-        state = 'waiting_for_language_selection_to_start';
-    }
 }
 
 function askVoiceQuestion(index) {
@@ -469,10 +569,11 @@ function askVoiceQuestion(index) {
         showTypingIndicator();
         setTimeout(() => {
             hideTypingIndicator();
-            let fullMessage = `${localizedMessages[language].voiceOnly}<br><br>${question.question}`;
+            let fullMessage = `${question.question}`;
             if (question.example) {
                 fullMessage += `<br><br>${question.example}`;
             }
+            fullMessage += `<br><br>${localizedMessages[language].voiceOnly}`;
             addMessage(fullMessage);
             micBtn.textContent = buttonText.record;
             micBtn.style.display = 'block';
@@ -540,6 +641,11 @@ async function submitData() {
         languagePath = await uploadFile(userResponses.languageAudio, `${submissionId}/language-preference.webm`);
     }
 
+    let discussionNotePath = null;
+    if (userResponses.discussionVoiceNote) {
+        discussionNotePath = await uploadFile(userResponses.discussionVoiceNote, `${submissionId}/discussion-note.webm`);
+    }
+
     const interviewAnswerPaths = [];
     for (let i = 0; i < userResponses.interviewAnswers.length; i++) {
         const path = await uploadFile(userResponses.interviewAnswers[i], `${submissionId}/interview-answer-${i + 1}.webm`);
@@ -557,7 +663,8 @@ async function submitData() {
             language_audio_path: languagePath,
             pay_structure: userResponses.payStructure,
             training_commitment: userResponses.trainingCommitment,
-            aadhaar_consent: userResponses.aadhaarConsent,
+            final_confirmation: userResponses.finalConfirmation,
+            discussion_voice_note_path: discussionNotePath,
             interview_answers: interviewAnswerPaths
         }]);
 
@@ -588,8 +695,8 @@ function resumeInterview() {
             askPayStructure();
         } else if (state === 'waiting_for_training_commitment') {
             askTrainingCommitment();
-        } else if (state === 'waiting_for_aadhaar_consent') {
-            askAadhaarConsent();
+        } else if (state === 'waiting_for_final_confirmation') {
+            askFinalConfirmation();
         }
     } else {
         addMessage(localizedMessages[getLang()].noSaved);
@@ -634,15 +741,16 @@ chatForm.addEventListener('submit', async (e) => {
                 }
                 break;
             case 'waiting_for_whatsapp':
-                 if (/\d{10}/.test(message.replace(/\D/g, ''))) {
+                // Stricter validation: only allows a 10-digit number and nothing else.
+                if (/^\d{10}$/.test(message)) {
                     userResponses.whatsappNumber = message;
                     repromptCount = 0;
                     botAskIfReadyForInterview();
                 } else {
-                    addMessage('Please enter a valid 10-digit WhatsApp number.');
+                    addMessage('Please enter a valid 10 number mobile number.');
                 }
                 break;
-             case 'waiting_for_interview_ready_confirmation':
+            case 'waiting_for_interview_ready_confirmation':
                 repromptCount = 0;
                 botAskIfReadyForInterview();
                 break;
@@ -651,14 +759,21 @@ chatForm.addEventListener('submit', async (e) => {
                     addMessage('Your interview is currently paused. Please type "Resume" to continue.');
                 }
                 break;
-            case 'waiting_for_language_selection_to_start':
             case 'waiting_for_voice_answer':
+                addMessage('Please use the voice recorder to reply.');
+                break;
+            case 'waiting_for_discussion_voice_note':
+                addMessage('Please use the voice recorder to share your concerns.');
+                break;
+            case 'waiting_for_language_selection_to_start':
             case 'waiting_for_pay_structure':
             case 'waiting_for_training_commitment':
-            case 'waiting_for_aadhaar_consent':
-                 addMessage('Please use the buttons or the voice recorder to reply.');
-                 break;
-
+            case 'waiting_for_final_confirmation':
+                addMessage('Please choose one of the options using the buttons.');
+                break;
+            case 'waiting_for_resume_upload':
+                addMessage('Please upload your resume file.');
+                break;
         }
     }
 });
@@ -744,6 +859,10 @@ micBtn.addEventListener('click', async function(e) {
                     userResponses.interviewAnswers.push(audioBlob);
                     currentQuestionIndex++;
                     askVoiceQuestion(currentQuestionIndex);
+                } else if (state === 'waiting_for_discussion_voice_note') {
+                    userResponses.discussionVoiceNote = audioBlob;
+                    addMessage('Thank you for your feedback. Our team will review your comments and reach out if needed.');
+                    botEndInterview();
                 }
             };
             mediaRecorder.start();
