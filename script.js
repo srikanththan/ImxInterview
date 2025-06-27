@@ -357,7 +357,6 @@ function botAskIfReadyForInterview() {
         ✅ Thank you. Now we'll begin your <b>"voice interview round"</b>.<br>
         🕒 It takes around <b>"15–20 minutes"</b>.<br>
         🎙️ Please send <b>voice message answers only</b> – typed answers <b>will not be accepted</b>.<br>
-        🗣️ Speak clearly, like you're talking to a <b>shop owner or teammate</b>.<br>
         🎧 Make sure you're in a quiet place or wear earphones so your answers are clear.<br><br>
         <b>To begin your interview, please select your preferred reply language:</b>
     `;
@@ -542,7 +541,7 @@ function askFinalConfirmation() {
 }
 
 function askForDiscussionVoiceNote() {
-    addMessage('Understood. Please record a detailed voice note explaining your concerns or any questions you have.');
+    addMessage('Understood. Please record a detailed voice note explaining your concerns or any questions you have.<br><br>🎤 REPLY VIA VOICE MESSAGE ONLY');
     const language = userResponses.languagePreference || 'english';
     const buttonText = localizedButtonText[language];
     micBtn.textContent = buttonText.record;
