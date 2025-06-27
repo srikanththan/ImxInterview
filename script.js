@@ -13,8 +13,6 @@ const SUPABASE_URL = 'https://jhnbukaukfpfqxmuintp.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpobmJ1a2F1a2ZwZnF4bXVpbnRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4MzU1NzUsImV4cCI6MjA2NjQxMTU3NX0.tryh8bChBEiuxyvKq9VjJL7sYsn5o7d0MGdezZLIj78';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let state = 'waiting_for_hi';
-let repromptCount = 0;
-const maxReprompts = 3;
 let interviewTimeout = null; // Timer for inactivity
 
 // --- Data Storage ---
@@ -361,11 +359,6 @@ function botThankUser(name) {
 
 function botRepromptFullName() {
     addMessage('Please tell me your full name.');
-    repromptCount++;
-    if (repromptCount >= maxReprompts) {
-        addMessage('We could not get your name. Please refresh to try again.');
-        state = 'done';
-    }
 }
 
 function botAskResume() {
@@ -390,7 +383,6 @@ function botAskIfReadyForInterview() {
         ✅ Thank you. Now we'll begin your <b>"voice interview round"</b>.<br>
         🕒 It takes around <b>"15–20 minutes"</b>.<br>
         🎙️ Please send <b>voice message answers only</b> – typed answers <b>will not be accepted</b>.<br>
-        🗣️ Speak clearly, like you're talking to a <b>shop owner or teammate</b>.<br>
         🎧 Make sure you're in a quiet place or wear earphones so your answers are clear.<br><br>
         <b>To begin your interview, please select your preferred reply language:</b>
     `;
@@ -529,7 +521,7 @@ function askTrainingCommitment() {
     }, 600);
 }
 
-function askFinalConfirmation() {
+async function askFinalConfirmation() {
     const questionText = 'Do you fully understand this pay system and are willing to proceed with the application?';
     
     const bubble = document.createElement('div');
@@ -546,7 +538,7 @@ function askFinalConfirmation() {
         const btn = document.createElement('button');
         btn.textContent = opt.label;
         btn.className = 'option-btn';
-        btn.onclick = () => {
+        btn.onclick = async () => {
             addMessage(opt.label, 'user');
             userResponses.finalConfirmation = opt.value;
 
@@ -556,13 +548,11 @@ function askFinalConfirmation() {
             });
 
             if (opt.value === 'yes_proceed') {
-                addMessage('Congratulations on completing round 1, we are excited to review your application and our team will reach out if you are shortlisted for Round 2, good luck.');
-                botEndInterview();
+                await botEndInterview('Congratulations on completing round 1, we are excited to review your application and our team will reach out if you are shortlisted for Round 2, good luck.', 'final-thankyou.mp3');
             } else if (opt.value === 'discuss') {
                 askForDiscussionVoiceNote();
             } else if (opt.value === 'no_fixed_salary') {
-                addMessage('Thank you for your time, we will keep your profile handy and reach out to you if we have a role which matches your requirements, good luck.');
-                botEndInterview();
+                await botEndInterview('Thank you for your time, we will keep your profile handy and reach out to you if we have a role which matches your requirements, good luck.', 'final-thankyou1.mp3');
             }
         };
         buttonContainer.appendChild(btn);
@@ -630,18 +620,6 @@ function askVoiceQuestion(index) {
     }
 }
 
-function addBotAudioMessage(audioSrc) {
-    const bubble = document.createElement('div');
-    bubble.className = 'chat-bubble bot';
-    const audio = document.createElement('audio');
-    audio.controls = true;
-    audio.src = audioSrc;
-    audio.autoplay = true;
-    bubble.appendChild(audio);
-    chatWindow.appendChild(bubble);
-    chatWindow.scrollTop = chatWindow.scrollHeight;
-}
-
 async function submitData() {
     const safeName = userResponses.name.replace(/[^a-zA-Z0-9_-]/g, '_');
     const submissionId = `${safeName}_${Date.now()}`;
@@ -705,13 +683,13 @@ async function submitData() {
     if (error) {
         console.error('Database Error:', error);
         addMessage("⚠️ An error occurred while saving. Please try again later.");
-    } else {
-        addBotAudioMessage('final-thankyou.mp3');
     }
 }
 
-function botEndInterview() {
-    submitData();
+async function botEndInterview(finalMessage = null, finalAudio = null) {
+    await submitData();
+    if (finalMessage) addMessage(finalMessage);
+    if (finalAudio) addBotAudioMessage(finalAudio);
     clearState();
     state = 'done';
 }
@@ -758,21 +736,15 @@ chatForm.addEventListener('submit', async (e) => {
 
         switch (state) {
             case 'waiting_for_hi':
-                if (message.toLowerCase().includes('hi') || message.toLowerCase().includes('hello') || message.toLowerCase() === 'interview ready') {
-                    repromptCount = 0;
-                    botAskFullName();
-                } else {
-                    botRepromptFullName();
-                }
+                botAskFullName();
                 break;
             case 'waiting_for_name':
-                if (/^[a-zA-Z\s]+$/.test(message)) {
-                    userResponses.name = message;
-                    repromptCount = 0;
-                    botThankUser(message);
-                } else {
+                // Accept any reply as the name, but warn if it looks invalid
+                userResponses.name = message;
+                if (!/^([\p{L} .'-]+)$/u.test(message)) {
                     addMessage(localizedMessages[getLang()].invalidName);
                 }
+                botThankUser(message);
                 break;
             case 'waiting_for_whatsapp':
                 // Stricter validation: only allows a 10-digit number and nothing else.
@@ -852,7 +824,7 @@ fileInput.addEventListener('change', function() {
         userResponses.aadhaarFile = uploadedFile;
         addFileMessage(uploadedFile, 'user');
         uploadBtn.style.display = 'none';
-        botEndInterview();
+        botEndInterview('Thank you for submitting your Aadhaar. Your application is complete.', 'final-thankyou.mp3');
     }
 });
 
@@ -889,7 +861,7 @@ micBtn.addEventListener('click', async function(e) {
             mediaRecorder.ondataavailable = event => {
                 audioChunks.push(event.data);
             };
-            mediaRecorder.onstop = () => {
+            mediaRecorder.onstop = async () => {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                 addAudioMessage(audioBlob, 'user');
                 micBtn.style.display = 'none';
@@ -902,8 +874,7 @@ micBtn.addEventListener('click', async function(e) {
                     askVoiceQuestion(currentQuestionIndex);
                 } else if (state === 'waiting_for_discussion_voice_note') {
                     userResponses.discussionVoiceNote = audioBlob;
-                    addMessage('Thank you for your feedback. Our team will review your comments and reach out if needed.');
-                    botEndInterview();
+                    await botEndInterview('Thank you for your feedback. Our team will review your comments and reach out if needed.', 'final-thankyou1.mp3');
                 }
             };
             mediaRecorder.start();
