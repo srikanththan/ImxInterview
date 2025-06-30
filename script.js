@@ -739,12 +739,15 @@ chatForm.addEventListener('submit', async (e) => {
                 botAskFullName();
                 break;
             case 'waiting_for_name':
-                // Accept any reply as the name, but warn if it looks invalid
-                userResponses.name = message;
+                // Validate the name
                 if (!/^([\p{L} .'-]+)$/u.test(message)) {
+                    // If invalid, show message and wait again.
                     addMessage(localizedMessages[getLang()].invalidName);
+                } else {
+                    // If valid, store it and move to the next step.
+                    userResponses.name = message;
+                    botThankUser(message);
                 }
-                botThankUser(message);
                 break;
             case 'waiting_for_whatsapp':
                 // Stricter validation: only allows a 10-digit number and nothing else.
