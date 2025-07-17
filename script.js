@@ -9,8 +9,8 @@ const pauseBtn = document.getElementById('pause-btn');
 
 // --- Supabase Initialization ---
 // IMPORTANT: Replace with your actual Supabase URL and Key
-const SUPABASE_URL = 'https://jhnbukaukfpfqxmuintp.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpobmJ1a2F1a2ZwZnF4bXVpbnRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4MzU1NzUsImV4cCI6MjA2NjQxMTU3NX0.tryh8bChBEiuxyvKq9VjJL7sYsn5o7d0MGdezZLIj78';
+const SUPABASE_URL = 'https://wsvfsiqaqdumpxzvrxag.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzdmZzaXFhcWR1bXB4enZyeGFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NjU1NDIsImV4cCI6MjA2NzA0MTU0Mn0.gbFsjVUDXdXzKOCY0qyuGSMOjPeP1RMA6Fv9U7kAgis';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let state = 'waiting_for_hi';
 let interviewTimeout = null; // Timer for inactivity
@@ -71,7 +71,7 @@ const localizedQuestions = {
             example: "💡 ఉదాహరణ: \"నేను రద్దీగా ఉండే మార్కెట్‌లకు వెళ్లి, మాన్యువల్ బిల్లింగ్ ఉపయోగించే షాపులను తనిఖీ చేస్తాను మరియు వారి స్టాక్ లేదా బిల్లింగ్ సమస్యల గురించి వారిని అడుగుతాను. ఆపై నేను యాప్‌ను వివరిస్తాను.\""
         },
         {
-            question: "🗣️ మీరు పాత సాఫ్ట్‌వేర్ లేదా మాన్యువల్ బిల్లులను ఉపయోగించే దుకాణంలోకి ప్రవేశించారు.\nయజమాని వినేలా చేయడానికి మీ ప్రారంభ వాక్యం ఏమిటి?",
+            question: "🗣️ మీరు పాత సాఫ్ట్‌వేర్ లేదా మాన్యువల్ బిల్లులను ఉపయోగించే దుకాణంలోకికి ప్రవేశించారు.\nయజమాని వినేలా చేయడానికి మీ ప్రారంభ వాక్యం ఏమిటి?",
             example: "💡 ఉదాహరణ: \"సర్, మీరు ఏదైనా సాఫ్ట్‌వేర్ ఉపయోగిస్తున్నారా? భారతీయ దుకాణాల కోసం స్టాక్ మరియు బిల్లింగ్ నిర్వహించడానికి నా దగ్గర ఒక యాప్ ఉంది - నేను మీకు 2 నిమిషాలు చూపించవచ్చా?\""
         },
         {
@@ -155,7 +155,8 @@ function saveState() {
     const stateToSave = {
         userResponses,
         currentQuestionIndex,
-        state
+        state,
+        resumeState
     };
     localStorage.setItem('imxInterviewState', JSON.stringify(stateToSave));
 }
@@ -163,13 +164,24 @@ function saveState() {
 function loadState() {
     const savedStateJSON = localStorage.getItem('imxInterviewState');
     if (savedStateJSON) {
-        return JSON.parse(savedStateJSON);
+        const parsed = JSON.parse(savedStateJSON);
+        resumeState = parsed.resumeState || null;
+        return parsed;
     }
     return null;
 }
 
 function clearState() {
     localStorage.removeItem('imxInterviewState');
+    resumeState = null;
+}
+
+function resetUI() {
+    chatInput.disabled = false;
+    chatForm.querySelector('button[type="submit"]').disabled = false;
+    micBtn.style.display = 'none';
+    uploadBtn.style.display = 'none';
+    pauseBtn.style.display = 'none';
 }
 
 // Q9: Pay Structure Clarity
@@ -216,7 +228,13 @@ const localizedMessages = {
         startFirst: "Great! Let's start with the first question.",
         resumeWord: 'Resume',
         voiceOnly: '🎤 REPLY VIA VOICE MESSAGE ONLY',
-        invalidName: 'Please enter a valid name using only letters and spaces.'
+        invalidName: 'Please enter a valid name using only letters and spaces.',
+        askResume: 'Please upload your latest resume (PDF or Image only).',
+        repromptResume: 'Please upload your resume file.',
+        useVoiceRecorderReply: 'Please use the voice recorder to reply.',
+        useVoiceRecorderConcerns: 'Please use the voice recorder to share your concerns.',
+        useButtons: 'Please choose one of the options using the buttons.',
+        interviewPaused: 'Your interview is currently paused. Please type "Resume" to continue.'
     },
     telugu: {
         resume: 'మీ ఇంటర్వ్యూను తిరిగి ప్రారంభిస్తున్నాము...',
@@ -230,7 +248,13 @@ const localizedMessages = {
         startFirst: 'అద్భుతం! మొదటి ప్రశ్నను ప్రారంభిద్దాం.',
         resumeWord: 'పునఃప్రారంభించండి',
         voiceOnly: '🎤 దయచేసి వాయిస్ మెసేజ్ ద్వారా మాత్రమే సమాధానం ఇవ్వండి',
-        invalidName: 'దయచేసి అక్షరాలు మరియు ఖాళీలను మాత్రమే ఉపయోగించి చెల్లుబాటు అయ్యే పేరును నమోదు చేయండి.'
+        invalidName: 'దయచేసి అక్షరాలు మరియు ఖాళీలను మాత్రమే ఉపయోగించి చెల్లుబాటు అయ్యే పేరును నమోదు చేయండి.',
+        askResume: 'దయచేసి మీ తాజా రెస్యూమ్ (PDF లేదా చిత్రం మాత్రమే) అప్‌లోడ్ చేయండి.',
+        repromptResume: 'దయచేసి మీ రెస్యూమ్ ఫ఼ఇల్‌ను అప్‌లోడ్ చేయండి.',
+        useVoiceRecorderReply: 'దయచేసి ప్రత్యుత్తరం ఇవ్వడానికి వాయిస్ రికార్డర్‌ను ఉపయోగించండి.',
+        useVoiceRecorderConcerns: 'దయచేసి మీ ఆందోళనలను పంచుకోవడానికి వాయిస్ రికార్డర్‌ను ఉపయోగించండి.',
+        useButtons: 'దయచేసి బటన్లను ఉపయోగించి ఎంపికలలో ఒకదాన్ని ఎంచుకోండి.',
+        interviewPaused: 'మీ ఇంటర్వ్యూ ప్రస్తుతం పాజ్ చేయబడింది. కొనసాగించడానికి దయచేసి "Resume" అని టైప్ చేయండి.'
     },
     hindi: {
         resume: 'आपका इंटरव्यू फिर से शुरू हो रहा है...',
@@ -244,7 +268,13 @@ const localizedMessages = {
         startFirst: 'बहुत बढ़िया! चलिए पहले सवाल से शुरू करते हैं।',
         resumeWord: 'फिर से शुरू करें',
         voiceOnly: '🎤 कृपया केवल वॉयस मैसेज के माध्यम से उत्तर दें',
-        invalidName: 'कृपया केवल अक्षरों और रिक्त स्थान का उपयोग करके एक वैध नाम दर्ज करें।'
+        invalidName: 'कृपया केवल अक्षरों और रिक्त स्थान का उपयोग करके एक वैध नाम दर्ज करें।',
+        askResume: 'कृपया अपना नवीनतम बायोडाटा (केवल पीडीएफ या छवि) अपलोड करें।',
+        repromptResume: 'कृपया अपनी बायोडाटा फ़ाइल अपलोड करें।',
+        useVoiceRecorderReply: 'कृपया जवाब देने के लिए वॉयस रिकॉर्डर का उपयोग करें।',
+        useVoiceRecorderConcerns: 'कृपया अपनी चिंताएं साझा करने के लिए वॉयस रिकॉर्डर का उपयोग करें।',
+        useButtons: 'कृपया बटनों का उपयोग करके विकल्पों में से एक चुनें।',
+        interviewPaused: 'आपका इंटरव्यू वर्तमान में रुका हुआ है। जारी रखने के लिए कृपया "Resume" टाइप करें।'
     }
 };
 
@@ -326,6 +356,22 @@ function showOptions(options, stateKey) {
             bubble.remove();
             if (stateKey === 'resume_confirmation') {
                 if (opt.value === 'resume') {
+                    state = resumeState;
+                    saveState();
+                    resumeInterview();
+                } else if (opt.value === 'start_over') {
+                    clearState();
+                    userResponses.languagePreference = 'english';
+                    addMessage(localizedMessages['english'].noProblem);
+                    state = 'waiting_for_hi';
+                    resetUI();
+                }
+                return;
+            }
+            if (stateKey === 'resume') {
+                if (opt.value === 'resume') {
+                    state = resumeState;
+                    saveState();
                     resumeInterview();
                 } else {
                     clearState();
@@ -362,7 +408,7 @@ function botRepromptFullName() {
 }
 
 function botAskResume() {
-    addMessage('Please upload your latest resume (PDF or Image only).');
+    addMessage(localizedMessages[getLang()].askResume);
     fileInput.accept = ".pdf,.jpg,.jpeg,.png"; // Restrict to PDF and image files
     uploadBtn.style.display = 'block';
     state = 'waiting_for_resume_upload';
@@ -549,10 +595,20 @@ async function askFinalConfirmation() {
 
             if (opt.value === 'yes_proceed') {
                 await botEndInterview('Congratulations on completing round 1, we are excited to review your application and our team will reach out if you are shortlisted for Round 2, good luck.', 'final-thankyou.mp3');
+                chatInput.disabled = true;
+                chatForm.querySelector('button[type="submit"]').disabled = true;
+                micBtn.style.display = 'none';
+                uploadBtn.style.display = 'none';
+                pauseBtn.style.display = 'none';
             } else if (opt.value === 'discuss') {
                 askForDiscussionVoiceNote();
             } else if (opt.value === 'no_fixed_salary') {
                 await botEndInterview('Thank you for your time, we will keep your profile handy and reach out to you if we have a role which matches your requirements, good luck.', 'final-thankyou1.mp3');
+                chatInput.disabled = true;
+                chatForm.querySelector('button[type="submit"]').disabled = true;
+                micBtn.style.display = 'none';
+                uploadBtn.style.display = 'none';
+                pauseBtn.style.display = 'none';
             }
         };
         buttonContainer.appendChild(btn);
@@ -687,11 +743,21 @@ async function submitData() {
 }
 
 async function botEndInterview(finalMessage = null, finalAudio = null) {
-    await submitData();
     if (finalMessage) addMessage(finalMessage);
-    if (finalAudio) addBotAudioMessage(finalAudio);
-    clearState();
+    if (finalAudio) {
+        addBotAudioMessage(finalAudio);
+    }
+    await submitData();
     state = 'done';
+    resumeState = null;
+    saveState(); // Save the 'done' state and clear resumeState
+    // Disable all inputs to end the chat
+    chatInput.disabled = true;
+    chatForm.querySelector('button[type="submit"]').disabled = true;
+    micBtn.style.display = 'none';
+    uploadBtn.style.display = 'none';
+    pauseBtn.style.display = 'none';
+    clearState(); // <-- Add this line to clear localStorage after thank you
 }
 
 function resumeInterview() {
@@ -701,7 +767,15 @@ function resumeInterview() {
         currentQuestionIndex = saved.currentQuestionIndex;
         state = saved.state;
         addMessage(localizedMessages[getLang()].resume);
-        if (state === 'waiting_for_voice_answer') {
+        if (state === 'waiting_for_name') {
+            botAskFullName();
+        } else if (state === 'waiting_for_resume_upload') {
+            botAskResume();
+        } else if (state === 'waiting_for_whatsapp') {
+            botAskWhatsapp();
+        } else if (state === 'waiting_for_interview_ready_confirmation') {
+            botAskIfReadyForInterview();
+        } else if (state === 'waiting_for_voice_answer') {
             askVoiceQuestion(currentQuestionIndex);
         } else if (state === 'waiting_for_pay_structure') {
             askPayStructure();
@@ -709,6 +783,8 @@ function resumeInterview() {
             askTrainingCommitment();
         } else if (state === 'waiting_for_final_confirmation') {
             askFinalConfirmation();
+        } else if (state === 'waiting_for_aadhaar_upload') {
+            botAskAadhaar();
         }
     } else {
         addMessage(localizedMessages[getLang()].noSaved);
@@ -719,7 +795,9 @@ function resumeInterview() {
 // --- Event Listeners ---
 
 chatForm.addEventListener('submit', async (e) => {
+    if (state === 'done') return;
     e.preventDefault();
+
     const message = chatInput.value.trim();
     if (message) {
         addMessage(message, 'user');
@@ -736,7 +814,9 @@ chatForm.addEventListener('submit', async (e) => {
 
         switch (state) {
             case 'waiting_for_hi':
-                botAskFullName();
+                if (message.toLowerCase().includes('hi') || message.toLowerCase().includes('hello') || message.toLowerCase() === 'interview ready') {
+                    botAskFullName();
+                }
                 break;
             case 'waiting_for_name':
                 // Validate the name
@@ -765,31 +845,35 @@ chatForm.addEventListener('submit', async (e) => {
                 break;
             case 'paused':
                 if (message.toLowerCase() !== 'resume') {
-                    addMessage('Your interview is currently paused. Please type "Resume" to continue.');
+                    addMessage(localizedMessages[getLang()].interviewPaused);
                 }
                 break;
             case 'waiting_for_voice_answer':
-                addMessage('Please use the voice recorder to reply.');
+                addMessage(localizedMessages[getLang()].useVoiceRecorderReply);
                 break;
             case 'waiting_for_discussion_voice_note':
-                addMessage('Please use the voice recorder to share your concerns.');
+                addMessage(localizedMessages[getLang()].useVoiceRecorderConcerns);
                 break;
             case 'waiting_for_language_selection_to_start':
             case 'waiting_for_pay_structure':
             case 'waiting_for_training_commitment':
             case 'waiting_for_final_confirmation':
-                addMessage('Please choose one of the options using the buttons.');
+                addMessage(localizedMessages[getLang()].useButtons);
                 break;
             case 'waiting_for_resume_upload':
-                addMessage('Please upload your resume file.');
+                addMessage(localizedMessages[getLang()].repromptResume);
                 break;
         }
     }
 });
 
-uploadBtn.addEventListener('click', () => fileInput.click());
+uploadBtn.addEventListener('click', () => {
+    if (state === 'done') return;
+    fileInput.click()
+});
 
 fileInput.addEventListener('change', function() {
+    if (state === 'done') return;
     if (!fileInput.files || fileInput.files.length === 0) {
         return; // No file selected
     }
@@ -828,10 +912,13 @@ fileInput.addEventListener('change', function() {
         addFileMessage(uploadedFile, 'user');
         uploadBtn.style.display = 'none';
         botEndInterview('Thank you for submitting your Aadhaar. Your application is complete.', 'final-thankyou.mp3');
+        clearState(); // <-- Add this line to clear localStorage after Aadhaar thank you
     }
 });
 
 pauseBtn.addEventListener('click', () => {
+    resumeState = state;
+    state = 'paused';
     saveState();
     const lang = getLang();
     const pausedMsg = localizedMessages[lang].paused.replace('{resumeWord}', localizedMessages[lang].resumeWord);
@@ -839,10 +926,10 @@ pauseBtn.addEventListener('click', () => {
     micBtn.style.display = 'none';
     pauseBtn.style.display = 'none';
     clearTimeout(interviewTimeout); // Stop the inactivity timer
-    state = 'paused';
 });
 
 micBtn.addEventListener('click', async function(e) {
+    if (state === 'done') return;
     e.preventDefault();
     chatInput.disabled = true; // Disable text input during recording
 
@@ -869,15 +956,23 @@ micBtn.addEventListener('click', async function(e) {
                 addAudioMessage(audioBlob, 'user');
                 micBtn.style.display = 'none';
                 micBtn.disabled = false;
-                chatInput.disabled = false; // Re-enable text input
-
+                
                 if (state === 'waiting_for_voice_answer') {
+                    chatInput.disabled = false; // Re-enable text input
                     userResponses.interviewAnswers.push(audioBlob);
                     currentQuestionIndex++;
                     askVoiceQuestion(currentQuestionIndex);
                 } else if (state === 'waiting_for_discussion_voice_note') {
                     userResponses.discussionVoiceNote = audioBlob;
-                    await botEndInterview('Thank you for your feedback. Our team will review your comments and reach out if needed.', 'final-thankyou1.mp3');
+                    addMessage('Thank you for your feedback. Our team will review your comments and reach out if needed.');
+                    addBotAudioMessage('final-thankyou1.mp3');
+                    await submitData();
+                    state = 'done';
+                    chatInput.disabled = true;
+                    chatForm.querySelector('button[type="submit"]').disabled = true;
+                    micBtn.style.display = 'none';
+                    uploadBtn.style.display = 'none';
+                    pauseBtn.style.display = 'none';
                 }
             };
             mediaRecorder.start();
@@ -892,17 +987,37 @@ micBtn.addEventListener('click', async function(e) {
 
 function initializeChat() {
     const savedState = loadState();
-    const lang = savedState && savedState.userResponses && savedState.userResponses.languagePreference ? savedState.userResponses.languagePreference : 'english';
-    if (savedState && savedState.state !== 'done') { 
-        addMessage(localizedMessages[lang].welcome);
-        showOptions([
-            { label: localizedMessages[lang].btnResume, value: 'resume' },
-            { label: localizedMessages[lang].btnStartOver, value: 'start_over' }
-        ], 'resume_confirmation');
-        state = 'waiting_for_resume_confirmation';
+
+    if (savedState) {
+        if (savedState.state === 'done') {
+            clearState();
+            resumeState = null;
+            currentQuestionIndex = 0;
+            Object.keys(userResponses).forEach(k => userResponses[k] = (Array.isArray(userResponses[k]) ? [] : null));
+            userResponses.languagePreference = 'english';
+            addMessage('Say "Hi" to start the chat!');
+            state = 'waiting_for_hi';
+            resetUI();
+            return;
+        }
+        Object.assign(userResponses, savedState.userResponses);
+        currentQuestionIndex = savedState.currentQuestionIndex;
+        state = savedState.state;
+        if (state === 'paused') {
+            const lang = getLang();
+            addMessage(localizedMessages[lang].welcome);
+            showOptions([
+                { label: localizedMessages[lang].btnResume, value: 'resume' },
+                { label: localizedMessages[lang].btnStartOver, value: 'start_over' }
+            ], 'resume_confirmation');
+            state = 'waiting_for_resume_confirmation';
+            return;
+        }
+        resumeInterview();
     } else {
         addMessage('Say "Hi" to start the chat!');
         state = 'waiting_for_hi';
+        resetUI();
     }
 }
 
