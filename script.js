@@ -683,6 +683,7 @@ async function submitData() {
     // --- Upload Files ---
     const uploadFile = async (file, path) => {
         if (!file) return null;
+        console.log('DEBUG: Uploading file', path, file);
         const { data, error } = await supabaseClient.storage
             .from('user-uploads')
             .upload(path, file);
@@ -691,39 +692,59 @@ async function submitData() {
             addMessage("⚠️ File upload failed. Please try again later.");
             return null;
         }
+        console.log('DEBUG: Uploaded file path:', data.path);
         return data.path;
     };
 
     let resumePath = null;
     if (userResponses.resumeFile) {
         resumePath = await uploadFile(userResponses.resumeFile, `${submissionId}/resume-${userResponses.resumeFile.name}`);
-        if (!resumePath) return false;
+        // If upload fails, just leave as null and continue
     }
 
     let aadhaarPath = null;
     if (userResponses.aadhaarFile) {
         aadhaarPath = await uploadFile(userResponses.aadhaarFile, `${submissionId}/aadhaar-${userResponses.aadhaarFile.name}`);
-        if (!aadhaarPath) return false;
+        // If upload fails, just leave as null and continue
     }
 
     let languagePath = null;
     if (userResponses.languageAudio) {
         languagePath = await uploadFile(userResponses.languageAudio, `${submissionId}/language-preference.webm`);
-        if (!languagePath) return false;
+        // If upload fails, just leave as null and continue
     }
 
     let discussionNotePath = null;
     if (userResponses.discussionVoiceNote) {
         discussionNotePath = await uploadFile(userResponses.discussionVoiceNote, `${submissionId}/discussion-note.webm`);
-        if (!discussionNotePath) return false;
+        // If upload fails, just leave as null and continue
     }
 
     const interviewAnswerPaths = [];
     for (let i = 0; i < userResponses.interviewAnswers.length; i++) {
-        const path = await uploadFile(userResponses.interviewAnswers[i], `${submissionId}/interview-answer-${i + 1}.webm`);
-        if (!path) return false;
-        interviewAnswerPaths.push(path);
+        const answer = userResponses.interviewAnswers[i];
+        if (answer) {
+            const path = await uploadFile(answer, `${submissionId}/interview-answer-${i + 1}.webm`);
+            if (path) {
+                interviewAnswerPaths.push(path);
+            }
+            // If upload fails, skip this answer but continue
+        }
     }
+
+    console.log('DEBUG: Inserting into database with:', {
+        full_name: userResponses.name,
+        whatsapp_number: userResponses.whatsappNumber,
+        resume_file_path: resumePath,
+        aadhaar_file_path: aadhaarPath,
+        language_audio_path: languagePath,
+        language_preference: userResponses.languagePreference,
+        pay_structure: userResponses.payStructure,
+        training_commitment: userResponses.trainingCommitment,
+        final_confirmation: userResponses.finalConfirmation,
+        discussion_voice_note_path: discussionNotePath,
+        interview_answers: interviewAnswerPaths
+    });
 
     // --- Store Data in Database ---
     const { data, error } = await supabaseClient
@@ -747,6 +768,7 @@ async function submitData() {
         addMessage("⚠️ An error occurred while saving. Please try again later.");
         return false;
     }
+    console.log('DEBUG: Inserted data:', data);
     return true;
 }
 
@@ -975,10 +997,16 @@ micBtn.addEventListener('click', async function(e) {
                     currentQuestionIndex++;
                     askVoiceQuestion(currentQuestionIndex);
                 } else if (state === 'waiting_for_discussion_voice_note') {
-                    userResponses.discussionVoiceNote = audioBlob;
-                    addMessage('Thank you for your feedback. Our team will review your comments and reach out if needed.');
-                    addBotAudioMessage('final-thankyou1.mp3');
-                    await submitData();
+                    // Convert Blob to File with a name for Supabase upload
+                    userResponses.discussionVoiceNote = new File([audioBlob], "discussion-note.webm", { type: "audio/webm" });
+                    console.log('DEBUG: discussionVoiceNote File:', userResponses.discussionVoiceNote);
+                    const result = await submitData();
+                    if (result) {
+                        addMessage('Thank you for your feedback. Our team will review your comments and reach out if needed.');
+                        addBotAudioMessage('final-thankyou1.mp3');
+                    } else {
+                        addMessage('⚠️ Data could not be saved. Please try again or contact support.');
+                    }
                     state = 'done';
                     chatInput.disabled = true;
                     chatForm.querySelector('button[type="submit"]').disabled = true;
