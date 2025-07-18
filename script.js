@@ -9,8 +9,8 @@ const pauseBtn = document.getElementById('pause-btn');
 
 // --- Supabase Initialization ---
 // IMPORTANT: Replace with your actual Supabase URL and Key
-const SUPABASE_URL = 'https://wsvfsiqaqdumpxzvrxag.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzdmZzaXFhcWR1bXB4enZyeGFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NjU1NDIsImV4cCI6MjA2NzA0MTU0Mn0.gbFsjVUDXdXzKOCY0qyuGSMOjPeP1RMA6Fv9U7kAgis';
+const SUPABASE_URL = 'https://ukpszbvykyiojlywbfhs.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVrcHN6YnZ5a3lpb2pseXdiZmhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4MTgzMzMsImV4cCI6MjA2ODM5NDMzM30.JLi4eHxDQXjRttRhkYrM2SdNibN8p1e5UQXHmzV7yrQ';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let state = 'waiting_for_hi';
 let interviewTimeout = null; // Timer for inactivity
@@ -688,6 +688,7 @@ async function submitData() {
             .upload(path, file);
         if (error) {
             console.error('Upload Error:', error.message);
+            addMessage("⚠️ File upload failed. Please try again later.");
             return null;
         }
         return data.path;
@@ -696,27 +697,32 @@ async function submitData() {
     let resumePath = null;
     if (userResponses.resumeFile) {
         resumePath = await uploadFile(userResponses.resumeFile, `${submissionId}/resume-${userResponses.resumeFile.name}`);
+        if (!resumePath) return false;
     }
 
     let aadhaarPath = null;
     if (userResponses.aadhaarFile) {
         aadhaarPath = await uploadFile(userResponses.aadhaarFile, `${submissionId}/aadhaar-${userResponses.aadhaarFile.name}`);
+        if (!aadhaarPath) return false;
     }
 
     let languagePath = null;
     if (userResponses.languageAudio) {
         languagePath = await uploadFile(userResponses.languageAudio, `${submissionId}/language-preference.webm`);
+        if (!languagePath) return false;
     }
 
     let discussionNotePath = null;
     if (userResponses.discussionVoiceNote) {
         discussionNotePath = await uploadFile(userResponses.discussionVoiceNote, `${submissionId}/discussion-note.webm`);
+        if (!discussionNotePath) return false;
     }
 
     const interviewAnswerPaths = [];
     for (let i = 0; i < userResponses.interviewAnswers.length; i++) {
         const path = await uploadFile(userResponses.interviewAnswers[i], `${submissionId}/interview-answer-${i + 1}.webm`);
-        if (path) interviewAnswerPaths.push(path);
+        if (!path) return false;
+        interviewAnswerPaths.push(path);
     }
 
     // --- Store Data in Database ---
@@ -739,25 +745,31 @@ async function submitData() {
     if (error) {
         console.error('Database Error:', error);
         addMessage("⚠️ An error occurred while saving. Please try again later.");
+        return false;
     }
+    return true;
 }
 
 async function botEndInterview(finalMessage = null, finalAudio = null) {
-    if (finalMessage) addMessage(finalMessage);
-    if (finalAudio) {
-        addBotAudioMessage(finalAudio);
+    const success = await submitData();
+    if (success) {
+        if (finalMessage) addMessage(finalMessage);
+        if (finalAudio) {
+            addBotAudioMessage(finalAudio);
+        }
+        state = 'done';
+        resumeState = null;
+        saveState(); // Save the 'done' state and clear resumeState
+        // Disable all inputs to end the chat
+        chatInput.disabled = true;
+        chatForm.querySelector('button[type="submit"]').disabled = true;
+        micBtn.style.display = 'none';
+        uploadBtn.style.display = 'none';
+        pauseBtn.style.display = 'none';
+        clearState(); // <-- Add this line to clear localStorage after thank you
+    } else {
+        addMessage('⚠️ Data could not be saved. Please try again or contact support.');
     }
-    await submitData();
-    state = 'done';
-    resumeState = null;
-    saveState(); // Save the 'done' state and clear resumeState
-    // Disable all inputs to end the chat
-    chatInput.disabled = true;
-    chatForm.querySelector('button[type="submit"]').disabled = true;
-    micBtn.style.display = 'none';
-    uploadBtn.style.display = 'none';
-    pauseBtn.style.display = 'none';
-    clearState(); // <-- Add this line to clear localStorage after thank you
 }
 
 function resumeInterview() {
